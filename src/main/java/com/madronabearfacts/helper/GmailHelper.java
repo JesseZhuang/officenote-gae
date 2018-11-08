@@ -69,6 +69,19 @@ public class GmailHelper {
                 .execute().getLabelIds().contains("SENT");
     }
 
+    public static boolean sendMessageLocal(Gmail service, String subject, String bodyHtml)
+            throws MessagingException, IOException {
+        Message message = createMessageWithEmail(
+                createEmail(Constants.GOOGLE.getProperty("officenotes.gmail"),
+                        Constants.GOOGLE.getProperty("jesse.email"),
+                        Constants.GOOGLE.getProperty("jesse.email"),
+                        subject, bodyHtml
+                ));
+
+        return service.users().messages().send(Constants.GOOGLE.getProperty("officenotes.gmail"), message)
+                .execute().getLabelIds().contains("SENT");
+    }
+
     private static MimeMessage createEmail(String from, String to, String bcc, String subject, String bodyHtml)
             throws MessagingException {
         MimeMessage email = new MimeMessage(Session.getDefaultInstance(new Properties(), null));

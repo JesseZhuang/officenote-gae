@@ -22,18 +22,23 @@ public class WeeklyCronServlet extends HttpServlet {
 
         Map<String, Integer> report = ServletHelper.updateArchiveDeleteBlurbs();
         int fetched = ServletHelper.fetchBlurbs();
-        if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development) {
-            //racing at least in local development
-            try {
-                Thread.sleep(10000L);
-                System.out.println("Sleeping 10s ...");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        boolean localDev = SystemProperty.environment.value() == SystemProperty.Environment.Value.Development;
+        if (localDev) {
+            //racing in local development
+            Object lock = new Object();
+            synchronized (lock) {
+                try {
+                    lock.wait(60000L);
+                    System.out.println("Sleeping 60s ...");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
         String campaignUrl = ServletHelper.mailchimp();
         try {
-            ServletHelper.sendEmailConfirmation(campaignUrl);
+            if (localDev) ServletHelper.sendEmailConfirmationLocal(campaignUrl);
+            else ServletHelper.sendEmailConfirmation(campaignUrl);
         } catch (MessagingException e) {
             e.printStackTrace();
         }

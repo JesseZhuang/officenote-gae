@@ -108,7 +108,14 @@ public class ServletHelper {
 
     public static boolean sendEmailConfirmation(String campaignUrl) throws IOException, MessagingException {
         return GmailHelper.sendMessage(GoogleAuthHelper.getGmailService(), "This week's office notes prepared",
-                String.format("The office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>", campaignUrl));
+                String.format("The office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>",
+                        campaignUrl, campaignUrl));
+    }
+
+    public static boolean sendEmailConfirmationLocal(String campaignUrl) throws IOException, MessagingException {
+        return GmailHelper.sendMessageLocal(GoogleAuthHelper.getGmailService(), "This week's office notes prepared",
+                String.format("The office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>",
+                        campaignUrl, campaignUrl));
     }
 
     public static void main(String[] args) {

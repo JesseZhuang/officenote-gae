@@ -1,0 +1,5 @@
+cron:
+- description: "weekly whole job: update/archive/delete, fetch, mailchimp, email confirmation"
+  url: /admin/cron/weekly
+  schedule: every saturday 11:59
+  timezone: America/Los_Angeles
