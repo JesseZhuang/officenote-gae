@@ -4,7 +4,6 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.utils.SystemProperty;
-import com.google.common.collect.ImmutableMap;
 import com.madronabearfacts.dao.BlurbDAO;
 import com.madronabearfacts.dao.SchoolYearDatesDAO;
 import com.madronabearfacts.entity.Blurb;
@@ -23,16 +22,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class ServletHelper {
 
     private static final Logger LOGGER = Logger.getLogger(ServletHelper.class.getName());
 
-    public static final String TOTAL_UPDATED_COUNT = "TotalUpdatedCount", TO_BE_ARCHIVED_COUNT = "ToBeArchivedCount";
-
-    public static int fetchBlurbs() {
+    public static List<Key> fetchBlurbs() {
         LOGGER.info("Start fetching blurbs submitted via email ...");
         List<Blurb> blurbs = GmailHelper.getBlurbs();
         BlurbDAO dao = new BlurbDAO();
@@ -40,8 +36,7 @@ public class ServletHelper {
         LOGGER.info("Start crawling e-fliers ...");
         blurbs.addAll(buildEflierBourbWithCrawler());
         LOGGER.info(String.format("Finished crawling e-fliers total blurbs count is %s.", blurbs.size()));
-        dao.saveBlurbs(blurbs, Constants.BLURB_ENTITY_KIND);
-        return blurbs.size();
+        return dao.saveBlurbs(blurbs, Constants.ACTIVE_BLURB_KIND);
     }
 
     private static List<Blurb> buildEflierBourbWithCrawler() {
@@ -65,40 +60,43 @@ public class ServletHelper {
         return eflierBlurb;
     }
 
-    public static Map<String, Integer> updateArchiveDeleteBlurbs() {
+    public static List<Key> updateArchiveDeleteBlurbs() {
         LOGGER.info("Start updating and archiving blurbs ...");
         BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(Constants.BLURB_ENTITY_KIND);
+        List<Blurb> blurbs = dao.getBlurbs(Constants.ACTIVE_BLURB_KIND);
         List<Blurb> toBeArchivedBlurbs = new ArrayList<>();
         List<Key> toDelete = new ArrayList<>();
+        List<Key> stayOnKeys = new ArrayList<>();
         LOGGER.info(String.format("Total blurbs count %s.", blurbs.size()));
         for (Blurb b : blurbs) {
             b.update();
             if (b.getCurWeek() > b.getNumWeeks()) {
-                toDelete.add(KeyFactory.createKey(Constants.BLURB_ENTITY_KIND, b.getId()));
+                toDelete.add(KeyFactory.createKey(Constants.BLURB_PARENT_KEY, Constants.ACTIVE_BLURB_KIND, b.getId()));
                 toBeArchivedBlurbs.add(b);
-            }
+            } else stayOnKeys.add(KeyFactory.createKey(
+                    Constants.BLURB_PARENT_KEY, Constants.ACTIVE_BLURB_KIND, b.getId()));
         }
         LOGGER.info(String.format("To be archived blurbs count %s.", toDelete.size()));
-        LOGGER.info(String.format("StayOn blurbs count %s.", blurbs.size() - toDelete.size()));
+        LOGGER.info(String.format("StayOn blurbs count %s.", stayOnKeys.size()));
         dao.updateArchiveDelete(blurbs, toBeArchivedBlurbs, toDelete);
         LOGGER.info("Finished updating and archiving blurbs.");
-        return ImmutableMap.of(TOTAL_UPDATED_COUNT, blurbs.size(),
-                TO_BE_ARCHIVED_COUNT, toDelete.size());
+        return stayOnKeys;
     }
 
-    public static void writeSchoolYearDates() {
+    public static void prepLocalDatastore() {
         if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
             // Production
         } else {
             SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
             dao.writeStartDate();
+            BlurbDAO dao1 = new BlurbDAO();
+            dao1.writeBlurbParent();
         }
     }
 
-    public static String mailchimp() throws IOException {
+    public static String mailchimp(List<Key> active) throws IOException {
         BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(Constants.BLURB_ENTITY_KIND);
+        List<Blurb> blurbs = dao.getBlurbs(active);
         String campaignUrl = new MailchimpHelper().doAllCampaignJobs(
                 GCalHelper.getCalendarService(GoogleAuthHelper.getCredServiceAccountFromClassPath(
                         CalendarScopes.CALENDAR_READONLY)),

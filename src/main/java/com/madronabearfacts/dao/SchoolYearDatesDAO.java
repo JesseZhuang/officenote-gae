@@ -1,6 +1,5 @@
 package com.madronabearfacts.dao;
 
-import com.google.appengine.api.datastore.Entity;
 import com.madronabearfacts.util.TimeUtils;
 
 import java.time.LocalDate;

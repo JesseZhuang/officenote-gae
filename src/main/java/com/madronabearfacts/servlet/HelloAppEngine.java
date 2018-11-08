@@ -2,8 +2,6 @@ package com.madronabearfacts.servlet;
 
 import com.google.appengine.api.utils.SystemProperty;
 import com.madronabearfacts.dao.SchoolYearDatesDAO;
-import com.madronabearfacts.helper.GmailHelper;
-import com.madronabearfacts.helper.GoogleAuthHelper;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -22,7 +20,7 @@ public class HelloAppEngine extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        ServletHelper.writeSchoolYearDates();
+        ServletHelper.prepLocalDatastore();
         Properties properties = System.getProperties();
 
         logger.log(Level.INFO, String.format("remote address: %s, remote host: %s",

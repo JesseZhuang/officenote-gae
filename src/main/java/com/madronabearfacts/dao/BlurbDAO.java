@@ -22,16 +22,23 @@ public class BlurbDAO implements CloudStoreDAO {
     /**
      * Saves a list of Blurbs to google cloud datastore. Keys to be auto generated.
      */
-    public void saveBlurbs(List<Blurb> blurbs, String kind) {
+    public List<Key> saveBlurbs(List<Blurb> blurbs, String kind) {
+        List<Key> keys = new ArrayList<>();
         List<Entity> entities = blurbsToEntities(blurbs, kind);
-        TransactionOptions options = TransactionOptions.Builder.withXG(true);
-        Transaction txn = datastoreService.beginTransaction(options);
+//        TransactionOptions options = TransactionOptions.Builder.withXG(true);
+//        Transaction txn = datastoreService.beginTransaction(options);
+        Transaction txn = datastoreService.beginTransaction();
         try {
-            datastoreService.put(txn, entities);
+            keys.addAll(datastoreService.put(txn, entities));
             txn.commit();
         } finally {
             if (txn.isActive()) txn.rollback();
         }
+        return keys;
+    }
+
+    public void writeBlurbParent() {
+        datastoreService.put(new Entity(Constants.BLURB_PARENT_KEY));
     }
 
     /**
@@ -46,7 +53,7 @@ public class BlurbDAO implements CloudStoreDAO {
         TransactionOptions options = TransactionOptions.Builder.withXG(true);
         Transaction txn = datastoreService.beginTransaction(options);
         try {
-            datastoreService.put(txn, blurbsToEntitiesWithIds(blurbs, Constants.BLURB_ENTITY_KIND));
+            datastoreService.put(txn, blurbsToEntitiesWithIds(blurbs, Constants.ACTIVE_BLURB_KIND));
             txn.commit();
         } finally {
             if (txn.isActive()) txn.rollback();
@@ -60,11 +67,11 @@ public class BlurbDAO implements CloudStoreDAO {
         Transaction txn = datastoreService.beginTransaction(options);
         try {
             // update all blurbs
-            datastoreService.put(txn, blurbsToEntitiesWithIds(toUpdate, Constants.BLURB_ENTITY_KIND));
+            datastoreService.put(txn, blurbsToEntitiesWithIds(toUpdate, Constants.ACTIVE_BLURB_KIND));
             // save blurbs to be archived in a different table/kind in cloud datastore
             SchoolYearDatesDAO sydDao = new SchoolYearDatesDAO();
             int schoolYear = TimeUtils.convertDateToLocalDate(sydDao.getStartDate()).getYear();
-            final String archivedBlurbKind = Constants.BLURB_ENTITY_KIND + schoolYear;
+            final String archivedBlurbKind = Constants.BLURB_PARENT_KIND + schoolYear;
             datastoreService.put(txn, blurbsToEntitiesWithIds(toArchive, archivedBlurbKind));
             // delete archived blurbs from the active blurbs table/kind
             datastoreService.delete(txn, toDelete);
@@ -79,6 +86,10 @@ public class BlurbDAO implements CloudStoreDAO {
         PreparedQuery pq = datastoreService.prepare(q);
         List<Entity> entities = pq.asList(FetchOptions.Builder.withDefaults());
         return entitiesToBlurbs(entities);
+    }
+
+    public List<Blurb> getBlurbs(List<Key> keys) {
+        return entitiesToBlurbs(new ArrayList<>(datastoreService.get(keys).values()));
     }
 
     private static List<Blurb> entitiesToBlurbs(List<Entity> entities) {
@@ -100,7 +111,8 @@ public class BlurbDAO implements CloudStoreDAO {
     private static List<Entity> blurbsToEntities(List<Blurb> blurbs, String kind) {
         List<Entity> entities = new ArrayList<>();
         // use auto generate keys and key ids so do not set them here
-        for (Blurb blurb : blurbs) entities.add(setEntityProperties(new Entity(kind), blurb));
+        for (Blurb blurb : blurbs)
+            entities.add(setEntityProperties(new Entity(kind, Constants.BLURB_PARENT_KEY), blurb));
         return entities;
     }
 
@@ -113,7 +125,7 @@ public class BlurbDAO implements CloudStoreDAO {
     private static List<Entity> blurbsToEntitiesWithIds(List<Blurb> blurbs, String kind) {
         List<Entity> entities = new ArrayList<>();
         for (Blurb blurb : blurbs) {
-            Entity e = setEntityProperties(new Entity(kind, blurb.getId()), blurb);
+            Entity e = setEntityProperties(new Entity(kind, blurb.getId(), Constants.BLURB_PARENT_KEY), blurb);
             entities.add(e);
         }
         return entities;

@@ -4,3 +4,4 @@ target/
 mailchimp.properties
 google.properties
 gmail_stored_cred/
+local_db.bin

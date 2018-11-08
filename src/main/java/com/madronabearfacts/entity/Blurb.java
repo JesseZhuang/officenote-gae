@@ -1,7 +1,5 @@
 package com.madronabearfacts.entity;
 
-import com.google.api.client.googleapis.testing.TestUtils;
-import com.madronabearfacts.helper.Constants;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Setter;

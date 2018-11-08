@@ -23,8 +23,9 @@ public class MailchimpServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        ServletHelper.prepLocalDatastore();
         BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(Constants.BLURB_ENTITY_KIND);
+        List<Blurb> blurbs = dao.getBlurbs(Constants.ACTIVE_BLURB_KIND);
         response.setContentType("text/plain");
         String campaignUrl = new MailchimpHelper().doAllCampaignJobs(
                 GCalHelper.getCalendarService(GoogleAuthHelper.getCredServiceAccountFromClassPath(

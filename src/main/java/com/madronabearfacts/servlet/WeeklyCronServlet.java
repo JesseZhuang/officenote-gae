@@ -1,5 +1,6 @@
 package com.madronabearfacts.servlet;
 
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.utils.SystemProperty;
 
 import javax.mail.MessagingException;
@@ -8,7 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Weekly cron job which does the following in sequence.
@@ -18,35 +20,44 @@ public class WeeklyCronServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        ServletHelper.writeSchoolYearDates();
+        ServletHelper.prepLocalDatastore();
 
-        Map<String, Integer> report = ServletHelper.updateArchiveDeleteBlurbs();
-        int fetched = ServletHelper.fetchBlurbs();
-        boolean localDev = SystemProperty.environment.value() == SystemProperty.Environment.Value.Development;
-        if (localDev) {
-            //racing in local development
+        List<Key> stayOn = ServletHelper.updateArchiveDeleteBlurbs();
+//        sleepForLocal();
+        List<Key> thisWeek = ServletHelper.fetchBlurbs();
+        List<Key> active = new ArrayList<>();
+        active.addAll(stayOn);
+        active.addAll(thisWeek);
+//        sleepForLocal();
+        String campaignUrl = ServletHelper.mailchimp(active);
+        sendEmail(campaignUrl);
+
+        response.setContentType("text/plain");
+        response.getWriter().println(String.format("Created mailchimp campaign at %s.", campaignUrl));
+    }
+
+    private void sleepForLocal() {
+        if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development) {
+            //issue for local development, chrome(canary)'s fault, multiple requests
             Object lock = new Object();
             synchronized (lock) {
                 try {
-                    lock.wait(60000L);
                     System.out.println("Sleeping 60s ...");
+                    lock.wait(60000L);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
-        String campaignUrl = ServletHelper.mailchimp();
+    }
+
+    private void sendEmail(String campaignUrl) throws IOException {
         try {
-            if (localDev) ServletHelper.sendEmailConfirmationLocal(campaignUrl);
+            if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development)
+                ServletHelper.sendEmailConfirmationLocal(campaignUrl);
             else ServletHelper.sendEmailConfirmation(campaignUrl);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-
-        response.setContentType("text/plain");
-        response.getWriter().println("Updated " + report.get(ServletHelper.TOTAL_UPDATED_COUNT) + " blurbs.\n"
-                + "Archived " + report.get(ServletHelper.TO_BE_ARCHIVED_COUNT) + " blurbs.");
-        response.getWriter().println("Fetched " + fetched + " blurbs.");
-        response.getWriter().println(String.format("Created mailchimp campaign at %s.", campaignUrl));
     }
 }

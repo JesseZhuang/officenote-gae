@@ -61,8 +61,8 @@ public class UpdateBlurbServletTest {
     private List<Entity> createTestEntities() {
         List<Entity> entities = new ArrayList<>();
         for(int i = 1; i <= BLURBS_COUNT; i++) {
-            Entity e = new Entity(Constants.BLURB_ENTITY_KIND, i);
-            e.setProperty(Blurb.TITLE, Constants.BLURB_ENTITY_KIND + i);
+            Entity e = new Entity(Constants.ACTIVE_BLURB_KIND, i);
+            e.setProperty(Blurb.TITLE, Constants.ACTIVE_BLURB_KIND + i);
             e.setProperty(Blurb.CONTENT, new Text("content"));
             e.setProperty(Blurb.CUR_WEEK, (long) i);
             e.setProperty(Blurb.NUM_WEEKS, (long) BLURBS_COUNT);
@@ -79,7 +79,6 @@ public class UpdateBlurbServletTest {
 
         assertThat(responseWriter.toString())
                 .named("UpdateServlet response")
-                .contains("Updated " + BLURBS_COUNT + " blurbs.\n" +
-                        "Archived " + 1 + " blurbs.");
+                .contains("Updated, archived, and deleted blurbs.");
     }
 }
