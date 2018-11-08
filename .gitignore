@@ -1,0 +1,6 @@
+target/
+.idea/
+*.json
+mailchimp.properties
+google.properties
+gmail_stored_cred/
