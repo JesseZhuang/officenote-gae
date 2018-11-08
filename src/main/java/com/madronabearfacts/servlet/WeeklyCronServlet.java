@@ -21,6 +21,7 @@ public class WeeklyCronServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ServletHelper.prepLocalDatastore();
+        if (!ServletHelper.shouldExecuteCronWeekly()) return;
 
         List<Key> stayOn = ServletHelper.updateArchiveDeleteBlurbs();
 //        sleepForLocal();

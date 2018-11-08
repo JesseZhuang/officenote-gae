@@ -66,7 +66,7 @@ public class HelloAppEngineTest {
             .contains("Hello App Engine - Standard ");
 
     assertThat(response)
-            .contains("school year start date : Mon Jan 01 00:00:00 UTC 2018");
+            .contains("school year start date :");
   }
 
   @Test

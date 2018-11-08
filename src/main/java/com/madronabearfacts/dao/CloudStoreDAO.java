@@ -48,12 +48,10 @@ public interface CloudStoreDAO {
     }
 
     default void writeDates(String kind, long id, Map<String, Date> dates) {
-        List<Entity> entities = new ArrayList<>();
+        Entity e = new Entity(kind, id);
         dates.forEach((property, date) -> {
-            Entity e = new Entity(kind, id);
             e.setProperty(property, date);
-            entities.add(e);
         });
-        datastoreService.put(entities);
+        datastoreService.put(e);
     }
 }

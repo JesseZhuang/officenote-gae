@@ -19,7 +19,9 @@ import com.madronabearfacts.util.TimeUtils;
 import javax.mail.MessagingException;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -27,6 +29,26 @@ import java.util.logging.Logger;
 public class ServletHelper {
 
     private static final Logger LOGGER = Logger.getLogger(ServletHelper.class.getName());
+
+    public static boolean shouldExecuteCronWeekly() {
+        SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
+        LocalDate today = LocalDate.now();
+        LocalDate schoolYearStart = TimeUtils.convertDateToLocalDate(dao.getStartDate());
+        LocalDate schoolYearEnd = TimeUtils.convertDateToLocalDate(dao.getEndDate());
+        if (today.isBefore(schoolYearStart.minusDays(7)) || today.isAfter(schoolYearEnd)) {
+            LOGGER.info("Summer time ...");
+            return false;
+        }
+        List<Date> skips = dao.getSkipDates();
+        for (Date date : skips) {
+            LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
+            if (ChronoUnit.DAYS.between(TimeUtils.convertDateToLocalDate(date), today) == 0) {
+                LOGGER.info("Skipping ...");
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static List<Key> fetchBlurbs() {
         LOGGER.info("Start fetching blurbs submitted via email ...");
@@ -88,7 +110,7 @@ public class ServletHelper {
             // Production
         } else {
             SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
-            dao.writeStartDate();
+            dao.writeDates();
             BlurbDAO dao1 = new BlurbDAO();
             dao1.writeBlurbParent();
         }
@@ -123,5 +145,13 @@ public class ServletHelper {
                 .startDate(new Date()).flierLinks((String) null).build();
         System.out.println(b);
         System.out.println(b.getFlierLinks() == null);
+        LocalDate today = LocalDate.now();
+        System.out.println(today);
+        LocalDate yesterday = today.minusDays(1);
+        System.out.println(ChronoUnit.DAYS.between(today, yesterday));
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        LocalDate todayNight = TimeUtils.convertDateToLocalDate(calendar.getTime());
+        System.out.println(ChronoUnit.DAYS.between(today, todayNight));
     }
 }
