@@ -1,5 +1,6 @@
 package com.madronabearfacts.util;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,7 +20,6 @@ import java.util.logging.Logger;
 public class TimeUtils {
 
     private static final Logger LOGGER = Logger.getLogger(TimeUtils.class.getName());
-    private static final LocalDate TODAY = LocalDate.now();
 
     public static final DateTimeFormatter CAMPAIGN_SCHEDULE = DateTimeFormatter.ofPattern("yyyy-LL-dd'T'kk-mmxxx");
     public static final DateTimeFormatter CAMPAIGN_TITLE = DateTimeFormatter.ofPattern("yyyy-LL-dd");
@@ -29,23 +29,35 @@ public class TimeUtils {
      * @return the Monday before the most recent one.
      */
     public static LocalDate getLastMonday() {
-        return getComingMonday().minusDays(14);
+        return getComingMonday(LocalDate.now()).minusDays(14);
     }
 
-    public static LocalDate getComingMonday() {
-        int old = TODAY.getDayOfWeek().getValue();
-        return TODAY.plusDays(8 - old);
+    public static LocalDate getComingMonday(LocalDate today) {
+        int old = today.getDayOfWeek().getValue();
+        return today.plusDays(8 - old);
     }
 
-    public static long getTwoMonthsFromNow() {
-        return TODAY.plusMonths(2).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+    public static LocalDate getTheNextBusinessDay(LocalDate today) {
+        LocalDate nextBysinessDay = today.plusDays(2);
+        if (nextBysinessDay.getDayOfWeek() == DayOfWeek.SATURDAY) return nextBysinessDay.plusDays(2);
+        if (nextBysinessDay.getDayOfWeek() == DayOfWeek.SUNDAY) return nextBysinessDay.plusDays(1);
+        else return nextBysinessDay;
     }
 
-    public static ZonedDateTime getComingMonday6am() {
+    public static long getTwoMonthsFromNow(LocalDate today) {
+        return today.plusMonths(2).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000;
+    }
+
+    public static ZonedDateTime getComingMonday6am(LocalDate today) {
         // office notes goes out every Monday 6 am pacific time
-        LocalDateTime monday6am = getComingMonday().atTime(6, 0);
+        LocalDateTime monday6am = getComingMonday(today).atTime(6, 0);
         return ZonedDateTime.of(monday6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
 //        return monday6am.atZone(ZoneId.of("Z"));
+    }
+
+    public static ZonedDateTime getTheNextBusinessDay6am(LocalDate today) {
+        LocalDateTime next6am = getTheNextBusinessDay(today).atTime(6, 0);
+        return ZonedDateTime.of(next6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
     }
 
     public static LocalDate parseDate(String date) {
@@ -64,7 +76,7 @@ public class TimeUtils {
         try {
             result = LocalDate.parse(date, formatter);
         } catch (DateTimeParseException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage());
+            LOGGER.severe(e.getMessage());
             e.printStackTrace();
         }
         return result;
@@ -84,8 +96,11 @@ public class TimeUtils {
         // UTC is 7 hour ahead of Pacific time
         LOGGER.info("Right now UTC time is " + DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(nowUTC));
 
-        for (int i = 1; i < 7; i++) {
-            LOGGER.info(getComingMonday6am().format(CAMPAIGN_SCHEDULE));
+        for (int i = 0; i < 7; i++) {
+            LocalDate start = LocalDate.now().plusDays(i);
+            System.out.println(start);
+            System.out.println(getComingMonday6am(start).format(CAMPAIGN_SCHEDULE) + "coming monday");
+            System.out.println(getTheNextBusinessDay6am(start).format(CAMPAIGN_SCHEDULE) + "next business day");
         }
 
         System.out.println(LocalDate.of(2003, 5, 23));

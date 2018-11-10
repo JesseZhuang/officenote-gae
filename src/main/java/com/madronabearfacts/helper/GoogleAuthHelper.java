@@ -11,6 +11,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 
@@ -38,7 +39,7 @@ public class GoogleAuthHelper {
     /**
      * Gmail credential json key file path.
      */
-    private static final String GMAIL_CRED_JSON_PATH = "/madrona.gmail.credentials.json";
+    private static final String GMAIL_CRED_JSON_PATH = "madrona.gae.oauth.cient.secret.json";
 
     /**
      * Directory to store user credentials for this application.
@@ -50,7 +51,8 @@ public class GoogleAuthHelper {
      */
     protected static HttpTransport HTTP_TRANSPORT;
 
-    private static final List<String> GMAIL_SCOPES = Arrays.asList(GmailScopes.GMAIL_READONLY, GmailScopes.GMAIL_SEND);
+    private static final List<String> GMAIL_SCOPES = Arrays.asList(GmailScopes.GMAIL_READONLY, GmailScopes.GMAIL_SEND,
+            GmailScopes.GMAIL_MODIFY);
 
     static {
         try {
@@ -72,24 +74,16 @@ public class GoogleAuthHelper {
                 .setApplicationName(APPLICATION_NAME).build();
     }
 
-    /**
-     * Fucking ridiculously simpler than other methods to get auth....
-     *
-     * @return Gmail service with oauth.
-     */
-    public static Gmail getGmailService() {
-        Properties p = Constants.GOOGLE;
-        return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY,
-                new GoogleCredential.Builder().setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT)
-                        .setClientSecrets(p.getProperty("client_id"), p.getProperty("client_secret")).build()
-                        .setAccessToken(p.getProperty("access_token")).setRefreshToken(p.getProperty("refresh_token")))
-                .setApplicationName(APPLICATION_NAME).build();
-    }
+
+
+
 
     /**
      * Get credential with json key for google oAuth2 which needs login to confirm.
-     * Credential cache is then saved in DATA_STORE_PATH.
+     * Credential cache is then saved in DATA_STORE_PATH. Does not work in GAE, no writing permission to save
+     * the stored credential.
      */
+    @Deprecated
     private static Credential getCredFromClassPath(Collection<String> scopes) throws IOException {
         InputStream in = GoogleAuthHelper.class.getResourceAsStream(GMAIL_CRED_JSON_PATH);
         return getCred(scopes, in, DATA_STORE_PATH);
@@ -105,8 +99,8 @@ public class GoogleAuthHelper {
         File credFile = new File(dataStorePath);
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, scopes)
-//                .setDataStoreFactory(new FileDataStoreFactory(credFile))
-                .setDataStoreFactory(AppEngineDataStoreFactory.getDefaultInstance())
+                .setDataStoreFactory(new FileDataStoreFactory(credFile))
+//                .setDataStoreFactory(AppEngineDataStoreFactory.getDefaultInstance()) did not work in GAE standard env
                 .setAccessType("offline")
                 .build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");

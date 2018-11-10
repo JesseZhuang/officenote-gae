@@ -3,12 +3,14 @@ package com.madronabearfacts.dao;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.madronabearfacts.entity.Blurb;
+import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.helper.Constants;
 import com.madronabearfacts.util.TimeUtils;
 
@@ -19,6 +21,11 @@ import java.util.List;
 import static com.madronabearfacts.entity.Blurb.*;
 
 public class BlurbDAO implements CloudStoreDAO {
+
+    public static final String ACTIVE_BLURB_KIND = "ActiveBlurb";
+    public static final String BLURB_PARENT_KIND = "Blurb";
+    public static final Key BLURB_PARENT_KEY = KeyFactory.createKey(BLURB_PARENT_KIND, "parent");
+
     /**
      * Saves a list of Blurbs to google cloud datastore. Keys to be auto generated.
      */
@@ -38,7 +45,7 @@ public class BlurbDAO implements CloudStoreDAO {
     }
 
     public void writeBlurbParent() {
-        datastoreService.put(new Entity(Constants.BLURB_PARENT_KEY));
+        datastoreService.put(new Entity(BLURB_PARENT_KEY));
     }
 
     /**
@@ -50,10 +57,10 @@ public class BlurbDAO implements CloudStoreDAO {
     public void updateBlurbs(List<Blurb> blurbs) {
         if (blurbs.stream().anyMatch(b -> b.getId() == 0))
             throw new RuntimeException("One or more of the blurbs has a id of 0.");
-        TransactionOptions options = TransactionOptions.Builder.withXG(true);
-        Transaction txn = datastoreService.beginTransaction(options);
+//        TransactionOptions options = TransactionOptions.Builder.withXG(true);
+        Transaction txn = datastoreService.beginTransaction();
         try {
-            datastoreService.put(txn, blurbsToEntitiesWithIds(blurbs, Constants.ACTIVE_BLURB_KIND));
+            datastoreService.put(txn, blurbsToEntitiesWithIds(blurbs, ACTIVE_BLURB_KIND));
             txn.commit();
         } finally {
             if (txn.isActive()) txn.rollback();
@@ -67,11 +74,11 @@ public class BlurbDAO implements CloudStoreDAO {
         Transaction txn = datastoreService.beginTransaction(options);
         try {
             // update all blurbs
-            datastoreService.put(txn, blurbsToEntitiesWithIds(toUpdate, Constants.ACTIVE_BLURB_KIND));
+            datastoreService.put(txn, blurbsToEntitiesWithIds(toUpdate, BlurbDAO.ACTIVE_BLURB_KIND));
             // save blurbs to be archived in a different table/kind in cloud datastore
             SchoolYearDatesDAO sydDao = new SchoolYearDatesDAO();
             int schoolYear = TimeUtils.convertDateToLocalDate(sydDao.getStartDate()).getYear();
-            final String archivedBlurbKind = Constants.BLURB_PARENT_KIND + schoolYear;
+            final String archivedBlurbKind = BLURB_PARENT_KIND + schoolYear;
             datastoreService.put(txn, blurbsToEntitiesWithIds(toArchive, archivedBlurbKind));
             // delete archived blurbs from the active blurbs table/kind
             datastoreService.delete(txn, toDelete);
@@ -101,7 +108,8 @@ public class BlurbDAO implements CloudStoreDAO {
                     .curWeek(((Long) e.getProperty(CUR_WEEK)).intValue())
                     .flierLinks((String) e.getProperty(FLIER_LINKS)).imageUrl((String) e.getProperty(IMAGE_URL))
                     .startDate((Date) e.getProperty(START_DATE)).fetchDate((Date) e.getProperty(FETCH_DATE))
-                    .id(e.getKey().getId())
+                    .id(e.getKey().getId()).submitterEmail((String) e.getProperty(SUBMITTER))
+                    .singleBlast(SingleBlast.valueOf((String) e.getProperty(SINGLE_BLAST)))
                     .build();
             blurbs.add(b);
         }
@@ -112,7 +120,7 @@ public class BlurbDAO implements CloudStoreDAO {
         List<Entity> entities = new ArrayList<>();
         // use auto generate keys and key ids so do not set them here
         for (Blurb blurb : blurbs)
-            entities.add(setEntityProperties(new Entity(kind, Constants.BLURB_PARENT_KEY), blurb));
+            entities.add(setEntityProperties(new Entity(kind, BLURB_PARENT_KEY), blurb));
         return entities;
     }
 
@@ -125,7 +133,7 @@ public class BlurbDAO implements CloudStoreDAO {
     private static List<Entity> blurbsToEntitiesWithIds(List<Blurb> blurbs, String kind) {
         List<Entity> entities = new ArrayList<>();
         for (Blurb blurb : blurbs) {
-            Entity e = setEntityProperties(new Entity(kind, blurb.getId(), Constants.BLURB_PARENT_KEY), blurb);
+            Entity e = setEntityProperties(new Entity(kind, blurb.getId(), BLURB_PARENT_KEY), blurb);
             entities.add(e);
         }
         return entities;
@@ -140,6 +148,8 @@ public class BlurbDAO implements CloudStoreDAO {
         entity.setProperty(IMAGE_URL, blurb.getImageUrl());
         entity.setProperty(START_DATE, blurb.getStartDate());
         entity.setProperty(FETCH_DATE, blurb.getFetchDate());
+        entity.setProperty(SUBMITTER, blurb.getSubmitterEmail());
+        entity.setProperty(SINGLE_BLAST, blurb.getSingleBlast().name());
         return entity;
     }
 }

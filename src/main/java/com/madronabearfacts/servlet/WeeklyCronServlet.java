@@ -1,7 +1,6 @@
 package com.madronabearfacts.servlet;
 
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.utils.SystemProperty;
+import com.madronabearfacts.helper.Constants;
 
 import javax.mail.MessagingException;
 import javax.servlet.annotation.WebServlet;
@@ -9,8 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Weekly cron job which does the following in sequence.
@@ -23,22 +20,16 @@ public class WeeklyCronServlet extends HttpServlet {
         ServletHelper.prepLocalDatastore();
         if (!ServletHelper.shouldExecuteCronWeekly()) return;
 
-        List<Key> stayOn = ServletHelper.updateArchiveDeleteBlurbs();
-//        sleepForLocal();
-        List<Key> thisWeek = ServletHelper.fetchBlurbs();
-        List<Key> active = new ArrayList<>();
-        active.addAll(stayOn);
-        active.addAll(thisWeek);
-//        sleepForLocal();
-        String campaignUrl = ServletHelper.mailchimp(active);
+        String campaignUrl = ServletHelper.weeklyOfficeNote();
+        ServletHelper.updateArchiveDeleteBlurbs();
         sendEmail(campaignUrl);
 
         response.setContentType("text/plain");
-        response.getWriter().println(String.format("Created mailchimp campaign at %s.", campaignUrl));
+        response.getWriter().println(String.format("Created weeklyOfficeNote campaign at %s.", campaignUrl));
     }
 
     private void sleepForLocal() {
-        if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development) {
+        if (Constants.isLocalDev) {
             //issue for local development, chrome(canary)'s fault, multiple requests
             Object lock = new Object();
             synchronized (lock) {
@@ -54,9 +45,9 @@ public class WeeklyCronServlet extends HttpServlet {
 
     private void sendEmail(String campaignUrl) throws IOException {
         try {
-            if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development)
-                ServletHelper.sendEmailConfirmationLocal(campaignUrl);
-            else ServletHelper.sendEmailConfirmation(campaignUrl);
+            if (Constants.isLocalDev)
+                ServletHelper.sendConfirmationLocal(campaignUrl);
+            else ServletHelper.sendConfirmation(campaignUrl);
         } catch (MessagingException e) {
             e.printStackTrace();
         }

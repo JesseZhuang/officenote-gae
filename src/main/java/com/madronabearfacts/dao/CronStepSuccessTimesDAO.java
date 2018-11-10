@@ -18,6 +18,12 @@ public class CronStepSuccessTimesDAO implements CloudStoreDAO {
         return getDate(KIND, ID, FETCH_BLURB);
     }
 
+    public void writeFetchBlurbTime(Date date) { writeDate(KIND, ID, FETCH_BLURB, date);}
+
+    public void writeUpdateBlurbTime(Date date) {
+        writeDate(KIND, ID, UPDATE, date);
+    }
+
     public Date getMailchimpTime () {
         return getDate(KIND, ID, MAILCHIMP);
     }

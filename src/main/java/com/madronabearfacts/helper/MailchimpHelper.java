@@ -16,8 +16,10 @@ import com.madronabearfacts.util.HtmlUtils;
 import com.madronabearfacts.util.TimeUtils;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,26 +30,26 @@ import java.util.logging.Logger;
 public class MailchimpHelper {
     private final Logger logger = Logger.getLogger(MailchimpHelper.class.getName());
 
-    private final String campaignTitle;
-
     private static final MailchimpClient CLIENT = new MailchimpClient(Constants.MAILCHIMP.getProperty("mailchimp_key"));
     private static final String PART1 = FileUtils.readClassPathFileToString("/mailchimp_template_part1.html");
     private static final String PART2 = FileUtils.readClassPathFileToString("/mailchimp_template_part2.html");
     private static final String PART3 = FileUtils.readClassPathFileToString("/mailchimp_template_part3.html");
     private static final String CALENDAR_STICKY = FileUtils.readClassPathFileToString("/mailchimp_calendar_sticky.html");
+    private static final String SINGLE_BLAST = FileUtils.readClassPathFileToString("/mailchimp_single_blast.html");
 
     public MailchimpHelper() {
-        this.campaignTitle = "Office Notes " + TimeUtils.getComingMonday().format(TimeUtils.CAMPAIGN_TITLE);
+        Logger ecwid = Logger.getLogger("com.ecwid.maleorang");
+        ecwid.setLevel(Level.WARNING);
     }
 
-    private CampaignInfo createCampaign() {
+    private CampaignInfo createCampaign(String campaignTitle) {
         EditCampaignMethod.Create job = new EditCampaignMethod.Create();
         job.type = CampaignInfo.Type.REGULAR;
         job.recipients = new CampaignInfo.RecipientsInfo();
         job.recipients.list_id = Constants.MAILCHIMP.getProperty("list_id");
 
         job.settings = new CampaignInfo.SettingsInfo();
-        job.settings.subject_line = Constants.MAILCHIMP.getProperty("email_subject");
+        job.settings.subject_line = campaignTitle;
         job.settings.from_name = Constants.MAILCHIMP.getProperty("from_name");
         job.settings.reply_to = Constants.MAILCHIMP.getProperty("reply_to");
         job.settings.folder_id = Constants.MAILCHIMP.getProperty("folder_id");
@@ -71,9 +73,9 @@ public class MailchimpHelper {
         return campaignInfo;
     }
 
-    private void setCampaignCotent(String campaignId, String mailchimpLeftColumn, String mailchimpRightColumn) {
+    private void setCampaignCotent(String campaignId, String html) {
         SetCampaignContentMethod job = new SetCampaignContentMethod(campaignId);
-        job.html = PART1 + mailchimpRightColumn + PART2 + mailchimpLeftColumn + PART3;
+        job.html = html;
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
@@ -82,10 +84,10 @@ public class MailchimpHelper {
         }
     }
 
-    private void scheduleCampaign(String campaignId) {
+    private void scheduleCampaign(String campaignId, ZonedDateTime time) {
 
         CampaignActionMethod.Schedule job = new CampaignActionMethod.Schedule(campaignId);
-        job.schedule_time = Date.from(TimeUtils.getComingMonday6am().toInstant());
+        job.schedule_time = Date.from(time.toInstant());
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
@@ -180,7 +182,7 @@ public class MailchimpHelper {
 
     private String generateLeftColumn(Calendar calendar) throws IOException {
         DateTime now = new DateTime(System.currentTimeMillis());
-        DateTime twoMonthsFromNow = new DateTime(TimeUtils.getTwoMonthsFromNow());
+        DateTime twoMonthsFromNow = new DateTime(TimeUtils.getTwoMonthsFromNow(LocalDate.now()));
         Events events = calendar.events().list(Constants.GOOGLE.getProperty("bearfacts.gmail"))
                 .setTimeMax(twoMonthsFromNow).setTimeMin(now).setOrderBy("startTime")
                 .setSingleEvents(true).execute();
@@ -234,7 +236,7 @@ public class MailchimpHelper {
 
             if (start1.getYear() - LocalDateTime.now().getYear() > 1) {
                 String msg = "Event start year is more than one year in future.";
-                logger.log(Level.SEVERE, msg);
+                logger.severe(msg);
                 throw new RuntimeException(msg);
             }
 
@@ -274,15 +276,46 @@ public class MailchimpHelper {
     }
 
     public String doAllCampaignJobs(Calendar calendar, List<Blurb> blurbs) throws IOException {
-        logger.info("Start creating mailchimp campaign ...");
+        logger.info("Start creating weeklyOfficeNote campaign ...");
         if (blurbs.size() == 0) return "No blurbs this week.";
-        Logger ecwid = Logger.getLogger("com.ecwid.maleorang");
-        ecwid.setLevel(Level.WARNING);
 
-        CampaignInfo campaignInfo = createCampaign();
-        setCampaignCotent(campaignInfo.id, generateLeftColumn(calendar), generateRightColumn(blurbs));
-        scheduleCampaign(campaignInfo.id);
-        logger.info("Finished creating mailchimp campaign.");
+        CampaignInfo campaignInfo = createCampaign("Office Notes "
+                + TimeUtils.getComingMonday(LocalDate.now()).format(TimeUtils.CAMPAIGN_TITLE));
+        setCampaignCotent(campaignInfo.id, PART1 + generateRightColumn(blurbs) + PART2
+                + generateLeftColumn(calendar) + PART3);
+        scheduleCampaign(campaignInfo.id, TimeUtils.getComingMonday6am(LocalDate.now()));
+        logger.info("Finished creating weeklyOfficeNote campaign.");
         return campaignInfo.archive_url;
+    }
+
+    public String singleBlast(List<Blurb> blurbs) {
+        logger.info("Start creating singleBlast campaign ...");
+        if (blurbs.size() == 0) return "No single blast blurbs today.";
+        String html = buildSingleBlast(blurbs).replace("<br />", "<br /><br />");
+
+        CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
+        setCampaignCotent(campaignInfo.id, String.format(SINGLE_BLAST, html));
+        scheduleCampaign(campaignInfo.id, TimeUtils.getTheNextBusinessDay6am(LocalDate.now()));
+        logger.info("Finished creating singleBlast campaign");
+        return campaignInfo.archive_url;
+    }
+
+    private String buildSingleBlast(List<Blurb> blurbs) {
+        final String titlePrefix = "<h2><span style=\"color:#A52A2A\"><span class=\"heading\">";
+        final String titleSuffix = "</span></span></h2>";
+        final String contentPrefix = "<br />", contentSuffix = "<br />";
+
+        StringBuilder result = new StringBuilder();
+        blurbs.forEach(b -> {
+            result.append(titlePrefix).append(b.getTitle()).append(titleSuffix)
+                    .append(contentPrefix).append(HtmlUtils.convert(b.getContent())).append(contentSuffix);
+            if (b.getImageUrl() != null) {
+                String pre = String.format("<a href='%s' target='_blank' title='Click to view'>", b.getImageUrl());
+                String end = "</a>";
+                result.append("<br><br>").append(pre).append("<img width =\"300\"; src=\"").append(b.getImageUrl())
+                        .append("\">").append(end).append("\n<br><br>\n");
+            }
+        });
+        return result.toString();
     }
 }

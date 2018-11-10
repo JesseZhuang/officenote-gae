@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ public interface CloudStoreDAO {
             datastoreService.delete(txn, keys);
             txn.commit();
         } finally {
-            if(txn.isActive()) txn.rollback();
+            if (txn.isActive()) txn.rollback();
         }
     }
 

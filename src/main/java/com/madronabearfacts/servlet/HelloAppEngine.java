@@ -23,11 +23,11 @@ public class HelloAppEngine extends HttpServlet {
         ServletHelper.prepLocalDatastore();
         Properties properties = System.getProperties();
 
-        logger.log(Level.INFO, String.format("remote address: %s, remote host: %s",
+        logger.info(String.format("remote address: %s, remote host: %s",
                 request.getRemoteAddr(), request.getRemoteHost()));
 
         SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
-        logger.log(Level.INFO, "school year start date : " + dao.getStartDate().toString());
+        logger.info("school year start date : " + dao.getStartDate().toString());
 
         response.setContentType("text/plain");
         response.getWriter().println("Hello App Engine - Standard using "

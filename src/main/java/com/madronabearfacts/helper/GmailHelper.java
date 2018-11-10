@@ -5,7 +5,9 @@ import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUt
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.ModifyMessageRequest;
 import com.madronabearfacts.entity.Blurb;
+import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.util.StringIndexUtils;
 
 import javax.mail.MessagingException;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -36,6 +39,13 @@ public class GmailHelper {
     private final static String CONTENT_PREFIX = "<font style=\"font-family: sans-serif; font-size:12px;\">";
     private final static String CONTENT_SUFFIX = "</font>";
 
+    /**
+     * Get inbox messages. Archive the messages if it is local development.
+     *
+     * @param service
+     * @return
+     * @throws IOException
+     */
     public static List<String> getMessages(Gmail service) throws IOException {
         // Print the labels in the user's account.
         String user = "me";
@@ -47,33 +57,34 @@ public class GmailHelper {
             LOGGER.info("No madrona office note submission messages found.");
         } else {
             LOGGER.info("Messages count: " + messages.size());
+            ModifyMessageRequest mod = new ModifyMessageRequest().setRemoveLabelIds(
+                    Collections.singletonList("INBOX"));
             for (Message message : messages) {
                 Message m = service.users().messages().get(user, message.getId()).execute();
                 htmlMessages.add(StringUtils.newStringUtf8(
                         m.getPayload().getBody().decodeData()));
+                if (!Constants.isLocalDev)
+                    service.users().messages().modify(user, message.getId(), mod).execute();
             }
         }
         return htmlMessages;
     }
 
-    public static boolean sendMessage(Gmail service, String subject, String bodyHtml)
+    public static boolean sendMessageMITChair(Gmail service, String subject, String bodyHtml)
             throws MessagingException, IOException {
-        Message message = createMessageWithEmail(
-                createEmail(Constants.GOOGLE.getProperty("officenotes.gmail"),
-                        Constants.GOOGLE.getProperty("mitchair.email"),
-                        Constants.GOOGLE.getProperty("jesse.email"),
-                        subject, bodyHtml
-                ));
-
-        return service.users().messages().send(Constants.GOOGLE.getProperty("officenotes.gmail"), message)
-                .execute().getLabelIds().contains("SENT");
+        return sendMessageToOne(service, Constants.GOOGLE.getProperty("mitchair.email"), subject, bodyHtml);
     }
 
     public static boolean sendMessageLocal(Gmail service, String subject, String bodyHtml)
             throws MessagingException, IOException {
+        return sendMessageToOne(service, Constants.GOOGLE.getProperty("jesse.email"), subject, bodyHtml);
+    }
+
+    private static boolean sendMessageToOne(Gmail service, String to, String subject, String bodyHtml)
+            throws MessagingException, IOException {
         Message message = createMessageWithEmail(
                 createEmail(Constants.GOOGLE.getProperty("officenotes.gmail"),
-                        Constants.GOOGLE.getProperty("jesse.email"),
+                        Collections.singletonList(to),
                         Constants.GOOGLE.getProperty("jesse.email"),
                         subject, bodyHtml
                 ));
@@ -82,11 +93,20 @@ public class GmailHelper {
                 .execute().getLabelIds().contains("SENT");
     }
 
-    private static MimeMessage createEmail(String from, String to, String bcc, String subject, String bodyHtml)
+    public static boolean sendEmail(Gmail service, List<String> toS, String bcc, String subject, String bodyHtml)
+            throws MessagingException, IOException {
+        Message message = createMessageWithEmail(
+                createEmail(Constants.GOOGLE.getProperty("officenotes.gmail"), toS, bcc, subject, bodyHtml));
+
+        return service.users().messages().send(Constants.GOOGLE.getProperty("officenotes.gmail"), message)
+                .execute().getLabelIds().contains("SENT");
+    }
+
+    private static MimeMessage createEmail(String from, List<String> toS, String bcc, String subject, String bodyHtml)
             throws MessagingException {
         MimeMessage email = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
         email.setFrom(new InternetAddress(from));
-        email.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(to));
+        for (String to : toS) email.addRecipient(MimeMessage.RecipientType.TO, new InternetAddress(to));
         email.addRecipients(MimeMessage.RecipientType.BCC, bcc);
         email.setSubject(subject);
         email.setContent(bodyHtml, "text/html; charset=utf-8");
@@ -108,6 +128,8 @@ public class GmailHelper {
         final String contentKey = "<strong>Article Contents:</strong>";
         final String flierLinksKey = "Upload Photo, Flyer, etc:";
         final String startDateKey = "Start Date:";
+        final String submitterEmailKey = "Your Email:";
+        final String singleBlastKey = "Single Announcement Broadcast Email";
 
         List<Blurb> blurbs = new ArrayList<>();
 
@@ -123,6 +145,8 @@ public class GmailHelper {
                     .replaceAll("\\s{2,}", " ").replace("·", "•");
             SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
             Date startDate = format.parse(findInfo(message, startDateKey, CONTENT_SUFFIX));
+            String submitterEmail = findInfo(message, submitterEmailKey, "'>", "</a>");
+            SingleBlast singleBlast = message.contains(singleBlastKey) ? SingleBlast.BLAST : SingleBlast.NOT_A_BLAST;
 
             // if flyer link is available, get and add the blurb
             if (message.contains(flierLinksKey)) {
@@ -132,14 +156,14 @@ public class GmailHelper {
                 flierLinks = cutLongFileName(flierLinks);
 
                 blurbs.add(Blurb.builder()
-                        .title(title).numWeeks(numWeeks).curWeek(1).content(content)
-                        .startDate(startDate).fetchDate(fetchDate)
+                        .title(title).numWeeks(numWeeks).curWeek(1).content(content).singleBlast(singleBlast)
+                        .startDate(startDate).fetchDate(fetchDate).submitterEmail(submitterEmail)
                         .flierLinks(flierLinks).imageUrl(getImageUrl(flierLinks))
                         .build());
             } else
                 blurbs.add(Blurb.builder()
-                        .title(title).numWeeks(numWeeks).curWeek(1).content(content)
-                        .startDate(startDate).fetchDate(fetchDate)
+                        .title(title).numWeeks(numWeeks).curWeek(1).content(content).singleBlast(singleBlast)
+                        .startDate(startDate).fetchDate(fetchDate).submitterEmail(submitterEmail)
                         .build());
         }
         return blurbs;
@@ -183,7 +207,7 @@ public class GmailHelper {
 
     public static List<Blurb> getBlurbs() {
         try {
-            return getBlurbs(getMessages(GoogleAuthHelper.getGmailService()));
+            return getBlurbs(getMessages(GmailSingleton.getInstance()));
         } catch (ParseException | IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Exception when fetch blurbs.");
@@ -191,9 +215,9 @@ public class GmailHelper {
     }
 
     public static void main(String[] args) throws IOException, ParseException, MessagingException {
-//        System.out.println(getMessages(GoogleAuthHelper.getGmailServiceFromFilePath()));
-//        List<Blurb> blurbs = getBlurbs(getMessages(GoogleAuthHelper.getGmailServiceFromFilePath()));
-        List<Blurb> blurbs = getBlurbs(getMessages(GoogleAuthHelper.getGmailService()));
+        Gmail local = GoogleAuthHelper.getGmailServiceFromFilePath();
+//        System.out.println(getMessages(local));
+        List<Blurb> blurbs = getBlurbs(getMessages(local));
         for (Blurb blurb : blurbs) {
             System.out.println(blurb);
         }

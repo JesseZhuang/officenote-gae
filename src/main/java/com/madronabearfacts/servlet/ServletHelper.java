@@ -3,21 +3,24 @@ package com.madronabearfacts.servlet;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.utils.SystemProperty;
 import com.madronabearfacts.dao.BlurbDAO;
+import com.madronabearfacts.dao.CronStepSuccessTimesDAO;
 import com.madronabearfacts.dao.SchoolYearDatesDAO;
 import com.madronabearfacts.entity.Blurb;
 import com.madronabearfacts.entity.Eflier;
+import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.helper.Constants;
 import com.madronabearfacts.helper.EflierCrawler;
 import com.madronabearfacts.helper.GCalHelper;
 import com.madronabearfacts.helper.GmailHelper;
+import com.madronabearfacts.helper.GmailSingleton;
 import com.madronabearfacts.helper.GoogleAuthHelper;
 import com.madronabearfacts.helper.MailchimpHelper;
 import com.madronabearfacts.util.TimeUtils;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -25,10 +28,23 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import static com.madronabearfacts.dao.BlurbDAO.ACTIVE_BLURB_KIND;
+import static com.madronabearfacts.dao.BlurbDAO.BLURB_PARENT_KEY;
 
 public class ServletHelper {
 
     private static final Logger LOGGER = Logger.getLogger(ServletHelper.class.getName());
+    private static final String CONFIRMATION_SUBJECT = "This week's office notes prepared";
+    private static final String CONFIRMATION_BODY = new StringBuilder()
+            .append("This week's office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>,")
+            .append(" powered by source code <a href=\"https://github.com/JesseZhuang/officenote-gae\"")
+            .append(" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
+    private static final String SINGLE_BLAST_BODY = new StringBuilder()
+            .append("Office Notes Special Edition for single blasts can be previewed at <a href=\"%s\" target=")
+            .append("\"_blank\">%s</a>, powered by source code <a href=\"https://github.com/JesseZhuang/")
+            .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
 
     public static boolean shouldExecuteCronWeekly() {
         SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
@@ -47,6 +63,12 @@ public class ServletHelper {
                 return false;
             }
         }
+        CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
+        LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
+        if (ChronoUnit.DAYS.between(d, today) == 0) {
+            LOGGER.severe("Already updated blurbs once today ...");
+            return false;
+        }
         return true;
     }
 
@@ -55,11 +77,18 @@ public class ServletHelper {
         List<Blurb> blurbs = GmailHelper.getBlurbs();
         BlurbDAO dao = new BlurbDAO();
         LOGGER.info(String.format("Fetched %s blurbs submitted via email.", blurbs.size()));
-        LOGGER.info("Start crawling e-fliers ...");
-        blurbs.addAll(buildEflierBourbWithCrawler());
-        LOGGER.info(String.format("Finished crawling e-fliers total blurbs count is %s.", blurbs.size()));
-        return dao.saveBlurbs(blurbs, Constants.ACTIVE_BLURB_KIND);
+        if (LocalDate.now().getDayOfWeek() == DayOfWeek.SATURDAY) {
+            LOGGER.info("Start crawling e-fliers since it is Saturday ...");
+            blurbs.addAll(buildEflierBourbWithCrawler());
+        }
+        LOGGER.info(String.format("Finished fetching, total blurbs count is %s.", blurbs.size()));
+        blurbs.forEach(b -> LOGGER.info(b.toString()));
+        List<Key> result = dao.saveBlurbs(blurbs, ACTIVE_BLURB_KIND);
+        CronStepSuccessTimesDAO dao1 = new CronStepSuccessTimesDAO();
+        dao1.writeFetchBlurbTime(new Date());
+        return result;
     }
+
 
     private static List<Blurb> buildEflierBourbWithCrawler() {
         List<Blurb> eflierBlurb = new ArrayList<>();
@@ -75,17 +104,21 @@ public class ServletHelper {
             for (Eflier flier : efliers) content += flier;
             eflierBlurb.add(Blurb.builder().content(content).title(title).curWeek(1).numWeeks(1)
                     .fetchDate(TimeUtils.convertLocalDateToDate(LocalDate.now()))
-                    .startDate(TimeUtils.convertLocalDateToDate(TimeUtils.getComingMonday()))
+                    .startDate(TimeUtils.convertLocalDateToDate(TimeUtils.getComingMonday(LocalDate.now())))
+                    .submitterEmail(Constants.GOOGLE.getProperty("jesse.email"))
+                    .singleBlast(SingleBlast.NOT_A_BLAST)
                     .build());
         }
         // if no e-fliers were crawled, return an empty list here.
         return eflierBlurb;
     }
 
-    public static List<Key> updateArchiveDeleteBlurbs() {
+    public static void updateArchiveDeleteBlurbs() {
         LOGGER.info("Start updating and archiving blurbs ...");
+        CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
+        csst.writeUpdateBlurbTime(new Date());
         BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(Constants.ACTIVE_BLURB_KIND);
+        List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
         List<Blurb> toBeArchivedBlurbs = new ArrayList<>();
         List<Key> toDelete = new ArrayList<>();
         List<Key> stayOnKeys = new ArrayList<>();
@@ -93,22 +126,18 @@ public class ServletHelper {
         for (Blurb b : blurbs) {
             b.update();
             if (b.getCurWeek() > b.getNumWeeks()) {
-                toDelete.add(KeyFactory.createKey(Constants.BLURB_PARENT_KEY, Constants.ACTIVE_BLURB_KIND, b.getId()));
+                toDelete.add(KeyFactory.createKey(BLURB_PARENT_KEY, ACTIVE_BLURB_KIND, b.getId()));
                 toBeArchivedBlurbs.add(b);
-            } else stayOnKeys.add(KeyFactory.createKey(
-                    Constants.BLURB_PARENT_KEY, Constants.ACTIVE_BLURB_KIND, b.getId()));
+            } else stayOnKeys.add(KeyFactory.createKey(BLURB_PARENT_KEY, ACTIVE_BLURB_KIND, b.getId()));
         }
         LOGGER.info(String.format("To be archived blurbs count %s.", toDelete.size()));
         LOGGER.info(String.format("StayOn blurbs count %s.", stayOnKeys.size()));
         dao.updateArchiveDelete(blurbs, toBeArchivedBlurbs, toDelete);
         LOGGER.info("Finished updating and archiving blurbs.");
-        return stayOnKeys;
     }
 
     public static void prepLocalDatastore() {
-        if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
-            // Production
-        } else {
+        if (Constants.isLocalDev) {
             SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
             dao.writeDates();
             BlurbDAO dao1 = new BlurbDAO();
@@ -116,9 +145,9 @@ public class ServletHelper {
         }
     }
 
-    public static String mailchimp(List<Key> active) throws IOException {
+    public static String weeklyOfficeNote() throws IOException {
         BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(active);
+        List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
         String campaignUrl = new MailchimpHelper().doAllCampaignJobs(
                 GCalHelper.getCalendarService(GoogleAuthHelper.getCredServiceAccountFromClassPath(
                         CalendarScopes.CALENDAR_READONLY)),
@@ -126,16 +155,40 @@ public class ServletHelper {
         return campaignUrl;
     }
 
-    public static boolean sendEmailConfirmation(String campaignUrl) throws IOException, MessagingException {
-        return GmailHelper.sendMessage(GoogleAuthHelper.getGmailService(), "This week's office notes prepared",
-                String.format("The office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>",
-                        campaignUrl, campaignUrl));
+    /**
+     * Schedule a mailchimp single blast office notes special edition campaign. Update the single blast blurbs. And
+     * send email confirmation to relevant submitterEmails. This API is idempotent.
+     *
+     * @return the campaign url.
+     */
+    public static String singleBlast() throws IOException, MessagingException {
+        LOGGER.info("Started single blast ...");
+        BlurbDAO dao = new BlurbDAO();
+        List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
+        List<Blurb> singleBlast = blurbs.stream().filter(b -> b.getSingleBlast().equals(SingleBlast.BLAST))
+                .collect(Collectors.toList());
+        List<String> submitterEmails = new ArrayList<>();
+        for (Blurb b : singleBlast) {
+            b.markSingleBlastScheduled();
+            submitterEmails.add(b.getSubmitterEmail());
+        }
+        String campaignUrl = new MailchimpHelper().singleBlast(singleBlast);
+        dao.updateBlurbs(singleBlast);
+        if (Constants.isLocalDev) submitterEmails.clear();
+        GmailHelper.sendEmail(GmailSingleton.getInstance(), submitterEmails,
+                Constants.GOOGLE.getProperty("jesse.email"), "Office Notes special edition created",
+                String.format(SINGLE_BLAST_BODY, campaignUrl, campaignUrl));
+        return campaignUrl;
     }
 
-    public static boolean sendEmailConfirmationLocal(String campaignUrl) throws IOException, MessagingException {
-        return GmailHelper.sendMessageLocal(GoogleAuthHelper.getGmailService(), "This week's office notes prepared",
-                String.format("The office notes can be previewed at <a href=\"%s\" target=\"_blank\">%s</a>",
-                        campaignUrl, campaignUrl));
+    public static boolean sendConfirmation(String campaignUrl) throws IOException, MessagingException {
+        return GmailHelper.sendMessageMITChair(GmailSingleton.getInstance(), CONFIRMATION_SUBJECT,
+                String.format(CONFIRMATION_BODY, campaignUrl, campaignUrl));
+    }
+
+    public static boolean sendConfirmationLocal(String campaignUrl) throws IOException, MessagingException {
+        return GmailHelper.sendMessageLocal(GmailSingleton.getInstance(), CONFIRMATION_SUBJECT,
+                String.format(CONFIRMATION_BODY, campaignUrl, campaignUrl));
     }
 
     public static void main(String[] args) {

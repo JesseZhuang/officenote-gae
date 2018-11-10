@@ -3,6 +3,9 @@ package com.madronabearfacts.dao;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 
+/**
+ * Singleton Cloud Datastore service. Lazy init.
+ */
 public class DatastoreSingleton {
     private DatastoreSingleton() {}
     private static class SingletonHelper {

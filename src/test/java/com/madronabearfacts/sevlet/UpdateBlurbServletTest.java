@@ -5,6 +5,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.madronabearfacts.entity.Blurb;
+import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.helper.Constants;
 import com.madronabearfacts.servlet.UpdateBlurbServlet;
 import org.junit.After;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.madronabearfacts.dao.BlurbDAO.ACTIVE_BLURB_KIND;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
@@ -61,13 +63,15 @@ public class UpdateBlurbServletTest {
     private List<Entity> createTestEntities() {
         List<Entity> entities = new ArrayList<>();
         for(int i = 1; i <= BLURBS_COUNT; i++) {
-            Entity e = new Entity(Constants.ACTIVE_BLURB_KIND, i);
-            e.setProperty(Blurb.TITLE, Constants.ACTIVE_BLURB_KIND + i);
+            Entity e = new Entity(ACTIVE_BLURB_KIND, i);
+            e.setProperty(Blurb.TITLE, ACTIVE_BLURB_KIND + i);
             e.setProperty(Blurb.CONTENT, new Text("content"));
             e.setProperty(Blurb.CUR_WEEK, (long) i);
             e.setProperty(Blurb.NUM_WEEKS, (long) BLURBS_COUNT);
             e.setProperty(Blurb.FETCH_DATE, TestUtils.START_DATE);
             e.setProperty(Blurb.START_DATE, TestUtils.START_DATE);
+            e.setProperty(Blurb.SUBMITTER, "test@test.com");
+            e.setProperty(Blurb.SINGLE_BLAST, SingleBlast.BLAST.name());
             entities.add(e);
         }
         return entities;

@@ -1,7 +1,6 @@
 package com.madronabearfacts.helper;
 
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.madronabearfacts.util.FileUtils;
 
 import java.util.ArrayList;
@@ -15,9 +14,6 @@ public class Constants {
      * which is the classpath.
      */
     public static final String resouceFilePath = "src/main/resources/";
-    public static final String ACTIVE_BLURB_KIND = "ActiveBlurb";
-    public static final String BLURB_PARENT_KIND = "Blurb";
-    public static final Key BLURB_PARENT_KEY = KeyFactory.createKey(BLURB_PARENT_KIND, "parent");
 
     // Eflier related
     public static final String ESD_DOMAIN = "https://www.edmonds.wednet.edu";
@@ -30,6 +26,7 @@ public class Constants {
             "sports__camps__lessons__and_teams",
             "summer_activities_-_district___community");
     public static List<String> EFLIER_URLS;
+
     static {
         EFLIER_URLS = new ArrayList<>();
         String prefix = ESD_DOMAIN + EFLIER_PATH;
@@ -37,11 +34,14 @@ public class Constants {
             EFLIER_URLS.add(prefix + EFLIER_CATEGORIES.get(i));
         }
     }
+
     // properties
     public static final Properties MAILCHIMP = FileUtils.loadClassPathProperty("/mailchimp.properties");
     public static final Properties GOOGLE = FileUtils.loadClassPathProperty("/google.properties");
 
+    public static final boolean isLocalDev =
+            SystemProperty.environment.value() == SystemProperty.Environment.Value.Development;
+
     public static void main(String[] args) {
-        System.out.println(GOOGLE.getProperty("scope"));
     }
 }

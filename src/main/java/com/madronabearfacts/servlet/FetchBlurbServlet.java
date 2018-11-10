@@ -18,6 +18,6 @@ public class FetchBlurbServlet extends HttpServlet {
         ServletHelper.prepLocalDatastore();
         response.setContentType("text/plain");
         ServletHelper.fetchBlurbs();
-        response.getWriter().println("Fetched" + " blurbs.");
+        response.getWriter().println(String.format("Fetched blurbs."));
     }
 }

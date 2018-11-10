@@ -20,6 +20,8 @@ public class Blurb {
     public static final String IMAGE_URL = "imageUrl";
     public static final String START_DATE = "startDate";
     public static final String FETCH_DATE = "fetchDate";
+    public static final String SUBMITTER = "submitterEmail";
+    public static final String SINGLE_BLAST = "singleBlast";
 
     @NonNull String title;
     @NonNull String content;
@@ -34,16 +36,19 @@ public class Blurb {
     @NonNull Date startDate;
     @NonNull Date fetchDate;
     @Setter @NonFinal long id;
+    @NonNull String submitterEmail;
+    @NonNull @NonFinal SingleBlast singleBlast;
 
     public void update() {
         this.curWeek++;
     }
 
+    public void markSingleBlastScheduled() {
+        if (this.singleBlast.equals(SingleBlast.NOT_A_BLAST))
+            throw new RuntimeException("Trying to update a blurb that is not a single blast.");
+        else this.singleBlast = SingleBlast.SCHEDULED;
+    }
+
     public static void main(String[] args) {
-        Blurb b = new Blurb("title", "content", 1, 5,
-                null, null, new Date(), new Date(), 1L);
-        System.out.println("original hashcode: " + b.hashCode());
-        b.update();
-        System.out.println("updated hashcode: " + b.hashCode());
     }
 }
