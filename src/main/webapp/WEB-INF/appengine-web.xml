@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
-    <application>resonant-gizmo-122303</application>
-    <version>1-0</version>
+    <application>officenotes-020716</application>
+    <version>1</version>
     <runtime>java8</runtime>
     <threadsafe>true</threadsafe>
     <system-properties>
         <property name="java.util.logging.config.file" value="WEB-INF/logging.properties"/>
     </system-properties>
     <!-- https://cloud.google.com/appengine/docs/standard/java/config/appref#url-stream-handler billing related -->
-    <url-stream-handler>urlfetch</url-stream-handler>
+    <!--<url-stream-handler>urlfetch</url-stream-handler>-->
+    <!-- mailchimp UnknownHostException even with above line uncommented -->
 </appengine-web-app>

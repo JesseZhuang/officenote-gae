@@ -51,6 +51,8 @@ public class TimeUtils {
     public static ZonedDateTime getComingMonday6am(LocalDate today) {
         // office notes goes out every Monday 6 am pacific time
         LocalDateTime monday6am = getComingMonday(today).atTime(6, 0);
+        LOGGER.info("Coming Monday 6am : " + monday6am);
+        LOGGER.info("ZoneId " + ZoneId.systemDefault());
         return ZonedDateTime.of(monday6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
 //        return monday6am.atZone(ZoneId.of("Z"));
     }

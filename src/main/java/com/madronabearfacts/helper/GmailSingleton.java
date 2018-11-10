@@ -18,8 +18,8 @@ public class GmailSingleton {
         Properties p = Constants.GOOGLE;
         gmail = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY,
                 new GoogleCredential.Builder().setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT)
-                        .setClientSecrets(p.getProperty("client_id"), p.getProperty("client_secret")).build()
-                        .setAccessToken(p.getProperty("access_token")).setRefreshToken(p.getProperty("refresh_token")))
+                        .setClientSecrets(p.getProperty("client_id_jesse"), p.getProperty("client_secret_jesse")).build()
+                        .setAccessToken(p.getProperty("access_token_jesse")).setRefreshToken(p.getProperty("refresh_token_jesse")))
                 .setApplicationName(APPLICATION_NAME).build();
     }
 

@@ -1,6 +1,7 @@
 package com.madronabearfacts.servlet;
 
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.madronabearfacts.dao.BlurbDAO;
@@ -85,7 +86,11 @@ public class ServletHelper {
         blurbs.forEach(b -> LOGGER.info(b.toString()));
         List<Key> result = dao.saveBlurbs(blurbs, ACTIVE_BLURB_KIND);
         CronStepSuccessTimesDAO dao1 = new CronStepSuccessTimesDAO();
-        dao1.writeFetchBlurbTime(new Date());
+        try {
+            dao1.updateFetchBlurbTime(new Date());
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
@@ -116,7 +121,11 @@ public class ServletHelper {
     public static void updateArchiveDeleteBlurbs() {
         LOGGER.info("Start updating and archiving blurbs ...");
         CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
-        csst.writeUpdateBlurbTime(new Date());
+        try {
+            csst.updateUpdateBlurbTime(new Date());
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+        }
         BlurbDAO dao = new BlurbDAO();
         List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
         List<Blurb> toBeArchivedBlurbs = new ArrayList<>();
@@ -142,6 +151,8 @@ public class ServletHelper {
             dao.writeDates();
             BlurbDAO dao1 = new BlurbDAO();
             dao1.writeBlurbParent();
+            CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
+            csst.writeForLocal();
         }
     }
 

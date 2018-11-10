@@ -17,6 +17,7 @@ import java.util.Map;
  */
 public interface CloudStoreDAO {
     DatastoreService datastoreService = DatastoreSingleton.getInstance();
+    String rootKeyName = "parent";
 
     default void deleteEntities(List<Key> keys) {
         TransactionOptions options = TransactionOptions.Builder.withXG(true);
@@ -40,8 +41,25 @@ public interface CloudStoreDAO {
         }
     }
 
+    default Date getDate(String kind, Key key, String propertyName) {
+        try {
+            Entity entity = datastoreService.get(key);
+            return (Date) entity.getProperty(propertyName);
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException(String.format("Cannot find %s in cloud datastore for kind : %s.",
+                    propertyName, kind));
+        }
+    }
+
     default void writeDate(String kind, long id, String propertyName, Date date) {
         Entity entity = new Entity(kind, id);
+        entity.setProperty(propertyName, date);
+        datastoreService.put(entity);
+    }
+
+    default void writeDate(String kind, Key key, String propertyName, Date date) {
+        Entity entity = new Entity(key);
         entity.setProperty(propertyName, date);
         datastoreService.put(entity);
     }

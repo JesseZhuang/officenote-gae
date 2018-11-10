@@ -143,8 +143,8 @@
         <version>1.9.67</version>
         <configuration>
           <project>officenotes-gc</project>
-          <appId>resonant-gizmo-122303</appId> <!-- Override appengine-web.xml <project> -->
-          <version>1-0</version>
+          <appId>officenotes-020716</appId> <!-- Override appengine-web.xml <project> -->
+          <version>1</version>
           <fullScanSeconds>1</fullScanSeconds>
           <retainUploadDir>true</retainUploadDir>
         </configuration>

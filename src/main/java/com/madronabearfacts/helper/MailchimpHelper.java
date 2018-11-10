@@ -88,6 +88,7 @@ public class MailchimpHelper {
 
         CampaignActionMethod.Schedule job = new CampaignActionMethod.Schedule(campaignId);
         job.schedule_time = Date.from(time.toInstant());
+        logger.info("Scheduled time is " + Date.from(time.toInstant()).toString());
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
@@ -291,7 +292,7 @@ public class MailchimpHelper {
     public String singleBlast(List<Blurb> blurbs) {
         logger.info("Start creating singleBlast campaign ...");
         if (blurbs.size() == 0) return "No single blast blurbs today.";
-        String html = buildSingleBlast(blurbs).replace("<br />", "<br /><br />");
+        String html = buildSingleBlast(blurbs);
 
         CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
         setCampaignCotent(campaignInfo.id, String.format(SINGLE_BLAST, html));
@@ -303,7 +304,7 @@ public class MailchimpHelper {
     private String buildSingleBlast(List<Blurb> blurbs) {
         final String titlePrefix = "<h2><span style=\"color:#A52A2A\"><span class=\"heading\">";
         final String titleSuffix = "</span></span></h2>";
-        final String contentPrefix = "<br />", contentSuffix = "<br />";
+        final String contentPrefix = "<br />", contentSuffix = "<br /><br />";
 
         StringBuilder result = new StringBuilder();
         blurbs.forEach(b -> {

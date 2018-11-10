@@ -40,7 +40,7 @@ public class Constants {
     public static final Properties GOOGLE = FileUtils.loadClassPathProperty("/google.properties");
 
     public static final boolean isLocalDev =
-            SystemProperty.environment.value() == SystemProperty.Environment.Value.Development;
+            SystemProperty.environment.value() != SystemProperty.Environment.Value.Production;
 
     public static void main(String[] args) {
     }

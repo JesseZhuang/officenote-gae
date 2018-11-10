@@ -11,7 +11,6 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.madronabearfacts.entity.Blurb;
 import com.madronabearfacts.entity.SingleBlast;
-import com.madronabearfacts.helper.Constants;
 import com.madronabearfacts.util.TimeUtils;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ public class BlurbDAO implements CloudStoreDAO {
 
     public static final String ACTIVE_BLURB_KIND = "ActiveBlurb";
     public static final String BLURB_PARENT_KIND = "Blurb";
-    public static final Key BLURB_PARENT_KEY = KeyFactory.createKey(BLURB_PARENT_KIND, "parent");
+    public static final Key BLURB_PARENT_KEY = KeyFactory.createKey(BLURB_PARENT_KIND, rootKeyName);
 
     /**
      * Saves a list of Blurbs to google cloud datastore. Keys to be auto generated.

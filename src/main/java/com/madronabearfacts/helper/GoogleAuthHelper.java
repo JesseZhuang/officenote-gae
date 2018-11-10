@@ -1,7 +1,6 @@
 package com.madronabearfacts.helper;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.appengine.datastore.AppEngineDataStoreFactory;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -25,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 
 public class GoogleAuthHelper {
     /**
@@ -73,9 +71,6 @@ public class GoogleAuthHelper {
         return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredFromFilePath(GMAIL_SCOPES))
                 .setApplicationName(APPLICATION_NAME).build();
     }
-
-
-
 
 
     /**

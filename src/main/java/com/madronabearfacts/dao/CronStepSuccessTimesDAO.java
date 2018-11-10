@@ -1,44 +1,50 @@
 package com.madronabearfacts.dao;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.madronabearfacts.util.TimeUtils;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class CronStepSuccessTimesDAO implements CloudStoreDAO {
     private static final String KIND = "CronStepSuccessTimes";
-    private static final long ID = 5646874153320448L;
-    private static final String UPDATE = "UpdateAndArchiveBlurb";
+    private static final String UPDATE = "UpdateArchiveDeleteBlurb";
     private static final String FETCH_BLURB = "FetchBlurb";
-    private static final String MAILCHIMP = "Mailchimp";
-    private static final String SUCCESS_ALL = "SendConfirmationEmail";
+    public static final Key KEY = KeyFactory.createKey(KIND, rootKeyName);
 
-    public CronStepSuccessTimesDAO(){}
-
-    public Date getFetchBlurbTime () {
-        return getDate(KIND, ID, FETCH_BLURB);
+    public CronStepSuccessTimesDAO() {
     }
 
-    public void writeFetchBlurbTime(Date date) { writeDate(KIND, ID, FETCH_BLURB, date);}
-
-    public void writeUpdateBlurbTime(Date date) {
-        writeDate(KIND, ID, UPDATE, date);
+    public void writeForLocal() {
+        Entity e = new Entity(KEY);
+        e.setProperty(FETCH_BLURB, TimeUtils.convertLocalDateToDate(LocalDate.now().minusDays(1)));
+        e.setProperty(UPDATE, TimeUtils.convertLocalDateToDate(LocalDate.now().minusDays(1)));
+        datastoreService.put(e);
     }
 
-    public Date getMailchimpTime () {
-        return getDate(KIND, ID, MAILCHIMP);
+    public Date getFetchBlurbTime() {
+        return getDate(KIND, KEY, FETCH_BLURB);
     }
 
-    public Date getUpdateBlurbTime () {
-        return getDate(KIND, ID, UPDATE);
+    public Date getUpdateBlurbTime() {
+        return getDate(KIND, KEY, UPDATE);
     }
 
-    public Date getEmailConfirmationTime () {
-        return getDate(KIND, ID, SUCCESS_ALL);
+    public void updateFetchBlurbTime(Date date) throws EntityNotFoundException {
+        update(FETCH_BLURB, date);
     }
 
-    public void writeDates(Date update, Date fetch, Date mailchimp, Date confirm) {
-        writeDates(KIND, ID, ImmutableMap.of(UPDATE, update, FETCH_BLURB, fetch, MAILCHIMP, mailchimp,
-                SUCCESS_ALL, confirm));
+    public void updateUpdateBlurbTime(Date date) throws EntityNotFoundException {
+        update(UPDATE, date);
+    }
+
+    public void update(String property, Date date) throws EntityNotFoundException {
+        Entity e = datastoreService.get(KEY);
+        e.setProperty(property, date);
+        datastoreService.put(e);
     }
 
 }
