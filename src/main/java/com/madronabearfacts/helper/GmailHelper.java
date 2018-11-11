@@ -55,7 +55,7 @@ public class GmailHelper {
                 .setQ("subject:\"Madronabearfacts.com Article Submission Form\" label:inbox ").execute();
         List<Message> messages = listResponse.getMessages();
         List<String> htmlMessages = new ArrayList<>();
-        if (messages.isEmpty()) {
+        if (messages == null) {
             LOGGER.info("No madrona office note submission messages found.");
         } else {
             LOGGER.info("Messages count: " + messages.size());

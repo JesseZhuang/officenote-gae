@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Fetch blurbs from office notes gmail email messages.
+ * Fetch blurbs from office notes gmail email messages. Not idempotent on Saturday for eflier blurb crawled.
  */
 @WebServlet(name = "FetchBlurbServlet", value = "/admin/fetch")
 public class FetchBlurbServlet extends HttpServlet {

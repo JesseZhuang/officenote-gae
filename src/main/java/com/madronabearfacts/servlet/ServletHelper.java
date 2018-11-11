@@ -184,11 +184,16 @@ public class ServletHelper {
      * @return the campaign url.
      */
     public static String singleBlast() throws IOException, MessagingException {
-        LOGGER.info("Started single blast ...");
+        LOGGER.info("Started searching for single blast ...");
         BlurbDAO dao = new BlurbDAO();
         List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
         List<Blurb> singleBlast = blurbs.stream().filter(b -> b.getSingleBlast().equals(SingleBlast.BLAST))
                 .collect(Collectors.toList());
+        if (singleBlast.isEmpty()) {
+            String msg = "No single blast blurbs today.";
+            LOGGER.info(msg);
+            return msg;
+        }
         List<String> submitterEmails = new ArrayList<>();
         for (Blurb b : singleBlast) {
             b.markSingleBlastScheduled();

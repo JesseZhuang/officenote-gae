@@ -290,13 +290,12 @@ public class MailchimpHelper {
 
     public String singleBlast(List<Blurb> blurbs) {
         logger.info("Start creating singleBlast campaign ...");
-        if (blurbs.size() == 0) return "No single blast blurbs today.";
         String html = buildSingleBlast(blurbs);
 
         CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
         setCampaignCotent(campaignInfo.id, String.format(SINGLE_BLAST, html));
         scheduleCampaign(campaignInfo.id, TimeUtils.getTheNextBusinessDay6am(LocalDate.now()));
-        logger.info("Finished creating singleBlast campaign");
+        logger.info("Finished creating singleBlast campaign.");
         return campaignInfo.archive_url;
     }
 
