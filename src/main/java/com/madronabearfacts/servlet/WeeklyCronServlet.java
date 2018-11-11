@@ -10,7 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Weekly cron job which does the following in sequence.
+ * <p>First check for holidays, last update blurbs time. Weekly cron job: put together the weekly office note,
+ * then update, archive, delete blurbs as necessary, then send email confirmation.
  */
 @WebServlet(name = "WeeklyCronServlet", value = "/admin/cron/weekly")
 public class WeeklyCronServlet extends HttpServlet {

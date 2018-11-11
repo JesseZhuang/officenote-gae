@@ -66,8 +66,9 @@ public class ServletHelper {
         }
         CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
         LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
-        if (ChronoUnit.DAYS.between(d, today) == 0) {
-            LOGGER.severe("Already updated blurbs once today ...");
+        LOGGER.info("Last week blurbs were updated on " + d.toString());
+        if (ChronoUnit.DAYS.between(d, today) < 7) {
+            LOGGER.severe("Already updated blurbs this week ...");
             return false;
         }
         return true;
@@ -222,7 +223,8 @@ public class ServletHelper {
         System.out.println((String) null);
         System.out.println(((String) null) == null);
         Blurb b = Blurb.builder().content("c").title("t").curWeek(1).numWeeks(4).fetchDate(new Date())
-                .startDate(new Date()).flierLinks((String) null).build();
+                .startDate(new Date()).flierLinks((String) null).submitterEmail("s")
+                .singleBlast(SingleBlast.NOT_A_BLAST).build();
         System.out.println(b);
         System.out.println(b.getFlierLinks() == null);
         LocalDate today = LocalDate.now();

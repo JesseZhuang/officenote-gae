@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
- * Creates a weeklyOfficeNote campaign and schedules to be sent out coming Monday at 6am.
+ * <p>Creates a weeklyOfficeNote campaign and schedules to be sent out coming Monday at 6am. Idempotent because
+ * will mark the blurbs as {@link com.madronabearfacts.entity.SingleBlast.NOT_A_BLAST}.
  */
 @WebServlet(name = "MailchimpSingleBlast", value = "/admin/MailchimpSingleBlast")
 public class MailchimpSingleBlast extends HttpServlet {
