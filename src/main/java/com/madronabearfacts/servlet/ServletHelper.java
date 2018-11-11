@@ -126,8 +126,7 @@ public class ServletHelper {
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
         }
-        BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
+        List<Blurb> blurbs = getActiveBlurbs();
         List<Blurb> toBeArchivedBlurbs = new ArrayList<>();
         List<Key> toDelete = new ArrayList<>();
         List<Key> stayOnKeys = new ArrayList<>();
@@ -141,6 +140,7 @@ public class ServletHelper {
         }
         LOGGER.info(String.format("To be archived blurbs count %s.", toDelete.size()));
         LOGGER.info(String.format("StayOn blurbs count %s.", stayOnKeys.size()));
+        BlurbDAO dao = new BlurbDAO();
         dao.updateArchiveDelete(blurbs, toBeArchivedBlurbs, toDelete);
         LOGGER.info("Finished updating and archiving blurbs.");
     }
@@ -157,13 +157,24 @@ public class ServletHelper {
     }
 
     public static String weeklyOfficeNote() throws IOException {
-        BlurbDAO dao = new BlurbDAO();
-        List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
+        List<Blurb> blurbs = getActiveBlurbs();
         String campaignUrl = new MailchimpHelper().doAllCampaignJobs(
                 GCalHelper.getCalendarService(GoogleAuthHelper.getCredServiceAccountFromClassPath(
                         CalendarScopes.CALENDAR_READONLY)),
                 blurbs);
         return campaignUrl;
+    }
+
+    /**
+     * @return active blurbs with a start date before/equal coming Monday.
+     */
+    private static List<Blurb> getActiveBlurbs() {
+        BlurbDAO dao = new BlurbDAO();
+        Date comingMonday = TimeUtils.convertLocalDateToDate(TimeUtils.getComingMonday(LocalDate.now()));
+        LOGGER.info("Coming Monday " + comingMonday);
+        return dao.getBlurbs(ACTIVE_BLURB_KIND).stream()
+                .peek(b -> LOGGER.info(String.format("Blurb %s start date %s.", b.getId(), b.getStartDate())))
+                .filter(b -> b.getStartDate().compareTo(comingMonday) <= 0).collect(Collectors.toList());
     }
 
     /**
