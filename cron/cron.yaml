@@ -1,13 +1,13 @@
 cron:
 - description: "weekly whole job: weeklyOfficeNote, update/archive/delete, email confirmation"
   url: /admin/cron/weekly
-  schedule: every saturday 11:59
+  schedule: every saturday 11:30
   timezone: America/Los_Angeles
 - description: "daily job: fetching blurbs, crawl eflier if it is Saturday"
   url: /admin/fetch
   schedule: every day 11:00
   timezone: America/Los_Angeles
 - description: "daily job: scanning for single blast, mailchimp, email confirmation"
-  url: /admin/singleBlast
-  schedule: every day 11:00
+  url: /admin/MailchimpSingleBlast
+  schedule: every day 11:59
   timezone: America/Los_Angeles

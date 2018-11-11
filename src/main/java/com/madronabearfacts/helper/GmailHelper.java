@@ -3,6 +3,8 @@ package com.madronabearfacts.helper;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
@@ -57,8 +59,9 @@ public class GmailHelper {
             LOGGER.info("No madrona office note submission messages found.");
         } else {
             LOGGER.info("Messages count: " + messages.size());
-            ModifyMessageRequest mod = new ModifyMessageRequest().setRemoveLabelIds(
-                    Collections.singletonList("INBOX"));
+            //id:Label_5 -> name:past office notes; id:INBOX -> name:INBOX
+            ModifyMessageRequest mod = new ModifyMessageRequest().setAddLabelIds(Collections.singletonList("Label_5"))
+                    .setRemoveLabelIds(Collections.singletonList("INBOX"));
             for (Message message : messages) {
                 Message m = service.users().messages().get(user, message.getId()).execute();
                 htmlMessages.add(StringUtils.newStringUtf8(
@@ -119,6 +122,14 @@ public class GmailHelper {
 
         return new Message()
                 .setRaw(Base64.encodeBase64URLSafeString(buffer.toByteArray()));
+    }
+
+    private static void getLabels(Gmail service) throws IOException {
+        ListLabelsResponse response = service.users().labels().list("me").execute();
+        List<Label> labels = response.getLabels();
+        for (Label label : labels) {
+            System.out.println(label.toPrettyString());
+        }
     }
 
     private static List<Blurb> getBlurbs(List<String> htmlMessages) throws ParseException {
@@ -217,10 +228,11 @@ public class GmailHelper {
     public static void main(String[] args) throws IOException, ParseException, MessagingException {
         Gmail local = GoogleAuthHelper.getGmailServiceFromFilePath();
 //        System.out.println(getMessages(local));
-        List<Blurb> blurbs = getBlurbs(getMessages(local));
-        for (Blurb blurb : blurbs) {
-            System.out.println(blurb);
-        }
+//        List<Blurb> blurbs = getBlurbs(getMessages(local));
+//        for (Blurb blurb : blurbs) {
+//            System.out.println(blurb);
+//        }
+        getLabels(local);
 
         String longFlierLinkname = "<a href='https://www.madronabearfacts.com/index.php?gf-download=" +
                 "2018%2F11%2FIMG_8930.jpg&amp;form-id=1&amp;field-id=21&amp;hash=7ad4fac922cbd1a2f1c715518" +

@@ -88,7 +88,6 @@ public class MailchimpHelper {
 
         CampaignActionMethod.Schedule job = new CampaignActionMethod.Schedule(campaignId);
         job.schedule_time = Date.from(time.toInstant());
-        logger.info("Scheduled time is " + Date.from(time.toInstant()).toString());
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {

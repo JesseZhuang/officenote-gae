@@ -1,5 +1,7 @@
 package com.madronabearfacts.util;
 
+import com.madronabearfacts.helper.Constants;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +13,6 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -50,15 +51,16 @@ public class TimeUtils {
 
     public static ZonedDateTime getComingMonday6am(LocalDate today) {
         // office notes goes out every Monday 6 am pacific time
-        LocalDateTime monday6am = getComingMonday(today).atTime(6, 0);
-        LOGGER.info("Coming Monday 6am : " + monday6am);
-        LOGGER.info("ZoneId " + ZoneId.systemDefault());
+        int hour = Constants.isLocalDev ? 6 : 14;
+        LocalDateTime monday6am = getComingMonday(today).atTime(hour, 0);
+        LOGGER.info("ZoneId " + ZoneId.systemDefault()); // GAE personal account uses ZoneId.UTC
         return ZonedDateTime.of(monday6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
 //        return monday6am.atZone(ZoneId.of("Z"));
     }
 
     public static ZonedDateTime getTheNextBusinessDay6am(LocalDate today) {
-        LocalDateTime next6am = getTheNextBusinessDay(today).atTime(6, 0);
+        int hour = Constants.isLocalDev ? 6 : 14;
+        LocalDateTime next6am = getTheNextBusinessDay(today).atTime(hour, 0);
         return ZonedDateTime.of(next6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
     }
 
