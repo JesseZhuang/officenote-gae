@@ -307,7 +307,9 @@ public class MailchimpHelper {
         StringBuilder result = new StringBuilder();
         blurbs.forEach(b -> {
             result.append(titlePrefix).append(b.getTitle()).append(titleSuffix)
-                    .append(contentPrefix).append(HtmlUtils.convert(b.getContent())).append(contentSuffix);
+                    .append(contentPrefix).append(HtmlUtils.convert(b.getContent()));
+            if (b.getFlierLinks() != null) result.append("<br><br> Flyer is at ").append(b.getFlierLinks()).append(".");
+            result.append(contentSuffix);
             if (b.getImageUrl() != null) {
                 String pre = String.format("<a href='%s' target='_blank' title='Click to view'>", b.getImageUrl());
                 String end = "</a>";
