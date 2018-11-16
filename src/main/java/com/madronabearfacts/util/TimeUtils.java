@@ -1,5 +1,6 @@
 package com.madronabearfacts.util;
 
+import com.google.common.collect.ImmutableSet;
 import com.madronabearfacts.helper.Constants;
 
 import java.time.DayOfWeek;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Date;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -38,10 +40,15 @@ public class TimeUtils {
         return today.plusDays(8 - old);
     }
 
-    public static LocalDate getTheNextBusinessDay(LocalDate today) {
-        LocalDate nextBysinessDay = today.plusDays(2);
-        if (nextBysinessDay.getDayOfWeek() == DayOfWeek.SATURDAY) return nextBysinessDay.plusDays(2);
-        if (nextBysinessDay.getDayOfWeek() == DayOfWeek.SUNDAY) return nextBysinessDay.plusDays(1);
+    /**
+     * Currently only used for single blast emails.
+     * @param today
+     * @return the next business day.
+     */
+    public static LocalDate getNextBusinessDay(LocalDate today) {
+        LocalDate nextBysinessDay = today.plusDays(1);
+        Set<DayOfWeek> weekend = ImmutableSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+        if (weekend.contains(nextBysinessDay.getDayOfWeek())) return getComingMonday(today);
         else return nextBysinessDay;
     }
 
@@ -58,9 +65,9 @@ public class TimeUtils {
 //        return monday6am.atZone(ZoneId.of("Z"));
     }
 
-    public static ZonedDateTime getTheNextBusinessDay6am(LocalDate today) {
+    public static ZonedDateTime getNextBusinessDay6am(LocalDate today) {
         int hour = Constants.isLocalDev ? 6 : 14;
-        LocalDateTime next6am = getTheNextBusinessDay(today).atTime(hour, 0);
+        LocalDateTime next6am = getNextBusinessDay(today).atTime(hour, 0);
         return ZonedDateTime.of(next6am, ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC);
     }
 
@@ -104,7 +111,7 @@ public class TimeUtils {
             LocalDate start = LocalDate.now().plusDays(i);
             System.out.println(start);
             System.out.println(getComingMonday6am(start).format(CAMPAIGN_SCHEDULE) + "coming monday");
-            System.out.println(getTheNextBusinessDay6am(start).format(CAMPAIGN_SCHEDULE) + "next business day");
+            System.out.println(getNextBusinessDay6am(start).format(CAMPAIGN_SCHEDULE) + "next business day");
         }
 
         System.out.println(LocalDate.of(2003, 5, 23));

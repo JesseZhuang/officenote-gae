@@ -4,6 +4,7 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.common.collect.ImmutableSet;
 import com.madronabearfacts.dao.BlurbDAO;
 import com.madronabearfacts.dao.CronStepSuccessTimesDAO;
 import com.madronabearfacts.dao.SchoolYearDatesDAO;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -186,6 +188,10 @@ public class ServletHelper {
      */
     public static String singleBlast() throws IOException, MessagingException {
         LOGGER.info("Started searching for single blast ...");
+        LocalDate today = LocalDate.now();
+        Set<DayOfWeek> skipDays = ImmutableSet.of(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
+        // skipping Friday - Sunday since it will be sent out Monday which conflicts with office notes.
+        if (skipDays.contains(today.getDayOfWeek())) return "skipping single blast task ... ";
         BlurbDAO dao = new BlurbDAO();
         List<Blurb> blurbs = dao.getBlurbs(ACTIVE_BLURB_KIND);
         List<Blurb> singleBlast = blurbs.stream().filter(b -> b.getSingleBlast().equals(SingleBlast.BLAST))

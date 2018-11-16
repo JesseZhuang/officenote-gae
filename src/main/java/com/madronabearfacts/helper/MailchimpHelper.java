@@ -294,7 +294,7 @@ public class MailchimpHelper {
 
         CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
         setCampaignCotent(campaignInfo.id, String.format(SINGLE_BLAST, html));
-        scheduleCampaign(campaignInfo.id, TimeUtils.getTheNextBusinessDay6am(LocalDate.now()));
+        scheduleCampaign(campaignInfo.id, TimeUtils.getNextBusinessDay6am(LocalDate.now()));
         logger.info("Finished creating singleBlast campaign.");
         return campaignInfo.archive_url;
     }
