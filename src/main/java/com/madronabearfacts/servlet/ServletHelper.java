@@ -50,6 +50,20 @@ public class ServletHelper {
             .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
 
     public static boolean shouldExecuteCronWeekly() {
+        if (!shouldFetchBlurbs()) return false;
+        LocalDate today = LocalDate.now();
+        CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
+        LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
+        LOGGER.info("Last week blurbs were updated on " + d.toString());
+        if (ChronoUnit.DAYS.between(d, today) < 7) {
+            String msg = "Already updated blurbs this week ...";
+            LOGGER.severe(msg);
+            throw new RuntimeException(msg);
+        }
+        return true;
+    }
+
+    public static boolean shouldFetchBlurbs() {
         SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
         LocalDate today = LocalDate.now();
         LocalDate schoolYearStart = TimeUtils.convertDateToLocalDate(dao.getStartDate());
@@ -61,17 +75,12 @@ public class ServletHelper {
         List<Date> skips = dao.getSkipDates();
         for (Date date : skips) {
             LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
-            if (ChronoUnit.DAYS.between(TimeUtils.convertDateToLocalDate(date), today) == 0) {
+            LocalDate skip = TimeUtils.convertDateToLocalDate(date);
+            int diff = today.compareTo(skip);
+            if ( diff >= 0 || diff <= 7) {
                 LOGGER.info("Skipping ...");
                 return false;
             }
-        }
-        CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
-        LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
-        LOGGER.info("Last week blurbs were updated on " + d.toString());
-        if (ChronoUnit.DAYS.between(d, today) < 7) {
-            LOGGER.severe("Already updated blurbs this week ...");
-            return false;
         }
         return true;
     }
@@ -237,6 +246,7 @@ public class ServletHelper {
         System.out.println(today);
         LocalDate yesterday = today.minusDays(1);
         System.out.println(ChronoUnit.DAYS.between(today, yesterday));
+        System.out.println(today.compareTo(yesterday));
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         LocalDate todayNight = TimeUtils.convertDateToLocalDate(calendar.getTime());

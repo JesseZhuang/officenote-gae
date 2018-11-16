@@ -1,3 +1,4 @@
+# https://cloud.google.com/appengine/docs/standard/java/config/cronref-yaml#custom
 cron:
 - description: "weekly whole job: weeklyOfficeNote, update/archive/delete, email confirmation"
   url: /admin/cron/weekly
@@ -9,5 +10,5 @@ cron:
   timezone: America/Los_Angeles
 - description: "daily job: scanning for single blast, mailchimp, email confirmation"
   url: /admin/MailchimpSingleBlast
-  schedule: every day 17:05
+  schedule: every monday,tuesday,wednesday,thursday 17:05
   timezone: America/Los_Angeles

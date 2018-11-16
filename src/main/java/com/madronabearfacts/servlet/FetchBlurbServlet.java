@@ -16,6 +16,7 @@ public class FetchBlurbServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ServletHelper.prepLocalDatastore();
+        if (!ServletHelper.shouldFetchBlurbs()) return;
         response.setContentType("text/plain");
         ServletHelper.fetchBlurbs();
         response.getWriter().println(String.format("Fetched blurbs."));
