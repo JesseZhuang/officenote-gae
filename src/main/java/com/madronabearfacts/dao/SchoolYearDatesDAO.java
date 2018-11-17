@@ -11,8 +11,8 @@ import java.util.List;
 public class SchoolYearDatesDAO implements CloudStoreDAO {
     private static final String KIND = "SchoolYearDates";
     private static final long ID = 5629499534213120L;
-    private static final String START_DATE = "SchoolYearStartDate";
-    private static final String END_DATE = "SchoolYearEndDate";
+    private static final String START_DATE = "SchoolYearStart";
+    private static final String END_DATE = "SchoolYearEnd";
     private static final String SPRING_BREAK = "SpringBreakMonday";
     private static final String WINTER_BREAK1 = "WinterBreakMonday1";
     private static final String WINTER_BREAK2 = "WinterBreakMonday2";
