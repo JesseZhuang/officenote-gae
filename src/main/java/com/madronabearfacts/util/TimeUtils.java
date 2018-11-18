@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.madronabearfacts.helper.Constants;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -97,6 +98,14 @@ public class TimeUtils {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    public static LocalDate getPacificLocalDate() {
+        return LocalDate.now(ZoneId.of("America/Los_Angeles"));
+    }
+
+    public static LocalDate getUtcLocalDate() {
+        return LocalDate.now(ZoneId.of("UTC"));
+    }
+
     public static Date convertLocalDateToDate(LocalDate localDate) {
         return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
@@ -129,5 +138,9 @@ public class TimeUtils {
         System.out.println(parseDate("01/15/22"));
         System.out.println(parseDate("01/15/37"));
         System.out.println(parseDate("01/15/38"));
+        System.out.println(Instant.now());
+        System.out.println(ZoneId.getAvailableZoneIds());
+        System.out.println(getPacificLocalDate());
+        System.out.println(getUtcLocalDate());
     }
 }

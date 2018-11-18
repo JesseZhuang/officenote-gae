@@ -107,7 +107,7 @@ public class MailchimpHelper {
             if (blurb.getTitle().contains("Community-")) community.add(blurb);
             else if (blurb.getCurWeek() == 1) thisWeek.add(blurb);
             else if (blurb.getCurWeek().equals(blurb.getNumWeeks())) lastWeekOnNotes.add(blurb);
-            else pastWeeks.add(blurb);
+            else if (blurb.getCurWeek() < blurb.getNumWeeks()) pastWeeks.add(blurb);
         }
         blurbs = new ArrayList<>();
         blurbs.addAll(thisWeek);

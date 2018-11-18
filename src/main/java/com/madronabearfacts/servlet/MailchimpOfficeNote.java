@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Creates a single blast campaign and schedules to be sent out the coming Monday day at 6 am.
+ * Creates a campaign and schedules to be sent out the coming Monday day at 6 am.
  */
 @WebServlet(name = "MailchimpOfficeNote", value = "/admin/MailchimpOfficeNote")
 public class MailchimpOfficeNote extends HttpServlet {

@@ -51,7 +51,7 @@ public class ServletHelper {
 
     public static boolean shouldExecuteCronWeekly() {
         if (!shouldFetchBlurbs()) return false;
-        LocalDate today = LocalDate.now();
+        LocalDate today = TimeUtils.getPacificLocalDate();
         CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
         LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
         LOGGER.info("Last week blurbs were updated on " + d.toString());
@@ -65,7 +65,7 @@ public class ServletHelper {
 
     public static boolean shouldFetchBlurbs() {
         SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
-        LocalDate today = LocalDate.now();
+        LocalDate today = TimeUtils.getPacificLocalDate();
         LocalDate schoolYearStart = TimeUtils.convertDateToLocalDate(dao.getStartDate());
         LocalDate schoolYearEnd = TimeUtils.convertDateToLocalDate(dao.getEndDate());
         if (today.isBefore(schoolYearStart.minusDays(7)) || today.isAfter(schoolYearEnd)) {
@@ -77,7 +77,7 @@ public class ServletHelper {
             LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
             int diff = today.compareTo(skip);
-            if ( diff >= 0 || diff <= 7) {
+            if ( diff >= 0 && diff < 7) {
                 LOGGER.info("Skipping ...");
                 return false;
             }
@@ -90,7 +90,7 @@ public class ServletHelper {
         List<Blurb> blurbs = GmailHelper.getBlurbs();
         BlurbDAO dao = new BlurbDAO();
         LOGGER.info(String.format("Fetched %s blurbs submitted via email.", blurbs.size()));
-        if (LocalDate.now().getDayOfWeek() == DayOfWeek.SATURDAY) {
+        if (TimeUtils.getPacificLocalDate().getDayOfWeek() == DayOfWeek.SATURDAY) {
             LOGGER.info("Start crawling e-fliers since it is Saturday ...");
             blurbs.addAll(buildEflierBourbWithCrawler());
         }
@@ -197,7 +197,7 @@ public class ServletHelper {
      */
     public static String singleBlast() throws IOException, MessagingException {
         LOGGER.info("Started searching for single blast ...");
-        LocalDate today = LocalDate.now();
+        LocalDate today = TimeUtils.getPacificLocalDate();
         Set<DayOfWeek> skipDays = ImmutableSet.of(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY);
         // skipping Friday - Sunday since it will be sent out Monday which conflicts with office notes.
         if (skipDays.contains(today.getDayOfWeek())) return "skipping single blast task ... ";
