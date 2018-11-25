@@ -95,7 +95,7 @@ public class TimeUtils {
     }
 
     public static LocalDate convertDateToLocalDate(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return date.toInstant().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
     }
 
     public static LocalDate getPacificLocalDate() {
@@ -107,7 +107,7 @@ public class TimeUtils {
     }
 
     public static Date convertLocalDateToDate(LocalDate localDate) {
-        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return Date.from(localDate.atStartOfDay(ZoneId.of("America/Los_Angeles")).toInstant());
     }
 
     public static void main(String[] args) {
