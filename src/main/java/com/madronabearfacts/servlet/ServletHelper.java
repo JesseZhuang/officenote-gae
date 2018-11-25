@@ -53,8 +53,9 @@ public class ServletHelper {
         if (!shouldFetchBlurbs()) return false;
         LocalDate today = TimeUtils.getPacificLocalDate();
         CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
-        LocalDate d = TimeUtils.convertDateToLocalDate(csst.getUpdateBlurbTime());
-        LOGGER.info("Last week blurbs were updated on " + d.toString() + " " + csst);
+        Date lastUpdatedDate = csst.getUpdateBlurbTime();
+        LocalDate d = TimeUtils.convertDateToLocalDate(lastUpdatedDate);
+        LOGGER.info("Last week blurbs were updated on " + d.toString() + " " + lastUpdatedDate);
         if (ChronoUnit.DAYS.between(d, today) < 7) {
             String msg = "Already updated blurbs this week ...";
             LOGGER.severe(msg);
