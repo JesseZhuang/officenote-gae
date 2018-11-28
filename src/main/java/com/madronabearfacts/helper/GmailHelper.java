@@ -8,6 +8,7 @@ import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
+import com.google.common.collect.ImmutableList;
 import com.madronabearfacts.entity.Blurb;
 import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.util.StringIndexUtils;
@@ -60,7 +61,7 @@ public class GmailHelper {
         } else {
             LOGGER.info("Messages count: " + messages.size());
             //id:Label_5 -> name:past office notes; id:INBOX -> name:INBOX
-            ModifyMessageRequest mod = new ModifyMessageRequest().setAddLabelIds(Collections.singletonList("Label_5"))
+            ModifyMessageRequest mod = new ModifyMessageRequest().setAddLabelIds(ImmutableList.of("Label_5", "STARRED"))
                     .setRemoveLabelIds(Collections.singletonList("INBOX"));
             for (Message message : messages) {
                 Message m = service.users().messages().get(user, message.getId()).execute();
