@@ -48,7 +48,7 @@ public class WeeklyCronServlet extends HttpServlet {
         try {
             if (Constants.isLocalDev)
                 ServletHelper.sendConfirmationLocal(campaignUrl);
-            else ServletHelper.sendConfirmation(campaignUrl);
+            else ServletHelper.sendMITChairConfirmation(campaignUrl);
         } catch (MessagingException e) {
             e.printStackTrace();
         }

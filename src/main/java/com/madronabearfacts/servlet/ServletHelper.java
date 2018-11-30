@@ -48,6 +48,11 @@ public class ServletHelper {
             .append("Office Notes Special Edition for single blasts can be previewed at <a href=\"%s\" target=")
             .append("\"_blank\">%s</a>, powered by source code <a href=\"https://github.com/JesseZhuang/")
             .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
+    private static final String SUBMIT_CONFIRMATION = new StringBuilder()
+            .append("Your office notes submission is received and will be sent out the immediate Monday after your ")
+            .append("scheduled starting date. Powered by source code <a href=\"https://github.com/JesseZhuang/")
+            .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
+
 
     public static boolean shouldExecuteCronWeekly() {
         if (!shouldFetchBlurbs()) return false;
@@ -89,6 +94,14 @@ public class ServletHelper {
     public static List<Key> fetchBlurbs() {
         LOGGER.info("Start fetching blurbs submitted via email ...");
         List<Blurb> blurbs = GmailHelper.getBlurbs();
+        List<String> submitters = new ArrayList<>();
+        blurbs.forEach(b -> submitters.add(b.getSubmitterEmail()));
+        try {
+            sendSubmitterConfirmation(submitters);
+        } catch (IOException | MessagingException e) {
+            LOGGER.severe("Failed to send email to submitters to confirm.");
+            throw new RuntimeException(e);
+        }
         BlurbDAO dao = new BlurbDAO();
         LOGGER.info(String.format("Fetched %s blurbs submitted via email.", blurbs.size()));
         if (TimeUtils.getPacificLocalDate().getDayOfWeek() == DayOfWeek.SATURDAY) {
@@ -225,7 +238,7 @@ public class ServletHelper {
         return campaignUrl;
     }
 
-    public static boolean sendConfirmation(String campaignUrl) throws IOException, MessagingException {
+    public static boolean sendMITChairConfirmation(String campaignUrl) throws IOException, MessagingException {
         return GmailHelper.sendMessageMITChair(GmailSingleton.getInstance(), CONFIRMATION_SUBJECT,
                 String.format(CONFIRMATION_BODY, campaignUrl, campaignUrl));
     }
@@ -233,6 +246,12 @@ public class ServletHelper {
     public static boolean sendConfirmationLocal(String campaignUrl) throws IOException, MessagingException {
         return GmailHelper.sendMessageLocal(GmailSingleton.getInstance(), CONFIRMATION_SUBJECT,
                 String.format(CONFIRMATION_BODY, campaignUrl, campaignUrl));
+    }
+
+    public static boolean sendSubmitterConfirmation(List<String> submitters) throws IOException, MessagingException {
+        return GmailHelper.sendEmail(GmailSingleton.getInstance(), submitters,
+                Constants.GOOGLE.getProperty("officenotes.gmail"), "Office Notes Submission Received",
+                SUBMIT_CONFIRMATION);
     }
 
     public static void main(String[] args) {
