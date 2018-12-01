@@ -83,7 +83,7 @@ public class ServletHelper {
             LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
             int diff = today.compareTo(skip);
-            if ( diff >= 0 && diff < 7) {
+            if (diff >= 0 && diff < 7) {
                 LOGGER.info("Skipping ...");
                 return false;
             }
@@ -97,7 +97,7 @@ public class ServletHelper {
         List<String> submitters = new ArrayList<>();
         blurbs.forEach(b -> submitters.add(b.getSubmitterEmail()));
         try {
-            sendSubmitterConfirmation(submitters);
+            if (!submitters.isEmpty()) sendSubmitterConfirmation(submitters);
         } catch (IOException | MessagingException e) {
             LOGGER.severe("Failed to send email to submitters to confirm.");
             throw new RuntimeException(e);
