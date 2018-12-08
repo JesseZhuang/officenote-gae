@@ -49,9 +49,10 @@ public class ServletHelper {
             .append("\"_blank\">%s</a>, powered by source code <a href=\"https://github.com/JesseZhuang/")
             .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
     private static final String SUBMIT_CONFIRMATION = new StringBuilder()
-            .append("Your office notes submission is received and will be sent out the immediate Monday after your ")
-            .append("scheduled starting date. Powered by source code <a href=\"https://github.com/JesseZhuang/")
-            .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
+            .append("Your office notes submission is received and will be sent out on your scheduled starting date if")
+            .append(" that is a Monday or the immediate Monday after. Powered by source code ")
+            .append("<a href=\"https://github.com/JesseZhuang/officenote-gae\" target=\"_blank\">here</a>.")
+            .append("<br><br>Jesse Zhuang").toString();
 
 
     public static boolean shouldExecuteCronWeekly() {
