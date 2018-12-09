@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class EflierCrawler {
 
-    private static final String START_IDENTIFIER = "<li>";
+    private static final String START_IDENTIFIER = "<li";
     private static final String END_IDENTIFIER = "</li>";
     private static final String URL_IDENTIFIER = "<a href=\"";
 
@@ -43,10 +43,10 @@ public class EflierCrawler {
 
             String postedDateString;
             try {
-            // return null if date format wrong, cannot parse
+                // return null if date format wrong, cannot parse
                 postedDateString = getPostedDate(eflierLine);
             } catch (Exception e) {
-            // 2018/01/13 one eflier line with just one space in there, no other content
+                // 2018/01/13 one eflier line with just one space in there, no other content
                 startIndex = eflierSection.indexOf(START_IDENTIFIER, endIndex);
                 continue;
             }
@@ -70,8 +70,9 @@ public class EflierCrawler {
     }
 
     private String getOneEflierLine(String fliers, int startIndex, int endIndex) {
-        return fliers.substring(findIndexOrThrowException(fliers, START_IDENTIFIER, startIndex)
-                + START_IDENTIFIER.length(), endIndex);
+        final String closeTag = ">";
+        startIndex = findIndexOrThrowException(fliers, START_IDENTIFIER, startIndex);
+        return fliers.substring(findIndexOrThrowException(fliers, closeTag, startIndex) + closeTag.length(), endIndex);
     }
 
     private String getEflierTitle(String eflierLine) {
@@ -88,7 +89,7 @@ public class EflierCrawler {
         int startIndex = findIndexOrThrowException(eflierLine, URL_IDENTIFIER) + URL_IDENTIFIER.length();
         int endIndex = findIndexOrThrowException(eflierLine, "\"", startIndex);
         String downloadUrl = eflierLine.substring(startIndex, endIndex).replace(" ", "%20");
-        if (downloadUrl.startsWith("http")) return  downloadUrl;
+        if (downloadUrl.startsWith("http")) return downloadUrl;
         return Constants.ESD_DOMAIN + downloadUrl;
     }
 
@@ -102,7 +103,7 @@ public class EflierCrawler {
     }
 
     private int getListStartIndex(String htmlContent) {
-        final String listStartIdentifier = "<ul>    <li>";
+        final String listStartIdentifier = "<ul>    <li";
         return findIndexOrThrowException(htmlContent, listStartIdentifier);
     }
 
@@ -146,12 +147,10 @@ public class EflierCrawler {
                 "(KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
 
         try (BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(urlConnection.getInputStream(), "UTF-8")))
-        {
+                new InputStreamReader(urlConnection.getInputStream(), "UTF-8"))) {
             String inputLine;
             StringBuilder stringBuilder = new StringBuilder();
-            while ((inputLine = bufferedReader.readLine()) != null)
-            {
+            while ((inputLine = bufferedReader.readLine()) != null) {
                 stringBuilder.append(inputLine);
             }
 
