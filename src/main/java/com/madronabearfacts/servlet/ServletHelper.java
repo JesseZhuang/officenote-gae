@@ -50,7 +50,7 @@ public class ServletHelper {
             .append("officenote-gae\" target=\"_blank\">here</a>.<br><br>Jesse Zhuang").toString();
     private static final String SUBMIT_CONFIRMATION = new StringBuilder()
             .append("Your office notes submission is received and will be sent out on your scheduled starting date if")
-            .append(" that is a Monday or the immediate Monday after. Powered by source code ")
+            .append(" that is a Monday or the immediate Monday after. Submissions received today: %s. Powered by source code ")
             .append("<a href=\"https://github.com/JesseZhuang/officenote-gae\" target=\"_blank\">here</a>.")
             .append("<br><br>Jesse Zhuang").toString();
 
@@ -96,9 +96,13 @@ public class ServletHelper {
         LOGGER.info("Start fetching blurbs submitted via email ...");
         List<Blurb> blurbs = GmailHelper.getBlurbs();
         List<String> submitters = new ArrayList<>();
-        blurbs.forEach(b -> submitters.add(b.getSubmitterEmail()));
+        List<String> titles = new ArrayList<>();
+        blurbs.forEach(b -> {
+            titles.add(b.getTitle());
+            submitters.add(b.getSubmitterEmail());
+        });
         try {
-            if (!submitters.isEmpty()) sendSubmitterConfirmation(submitters);
+            if (!submitters.isEmpty()) sendSubmitterConfirmation(submitters, titles);
         } catch (IOException | MessagingException e) {
             LOGGER.severe("Failed to send email to submitters to confirm.");
             throw new RuntimeException(e);
@@ -249,10 +253,11 @@ public class ServletHelper {
                 String.format(CONFIRMATION_BODY, campaignUrl, campaignUrl));
     }
 
-    public static boolean sendSubmitterConfirmation(List<String> submitters) throws IOException, MessagingException {
+    public static boolean sendSubmitterConfirmation(List<String> submitters, List<String> titles)
+            throws IOException, MessagingException {
         return GmailHelper.sendEmail(GmailSingleton.getInstance(), submitters,
                 Constants.GOOGLE.getProperty("officenotes.gmail"), "Office Notes Submission Received",
-                SUBMIT_CONFIRMATION);
+                String.format(SUBMIT_CONFIRMATION, titles));
     }
 
     public static void main(String[] args) {
