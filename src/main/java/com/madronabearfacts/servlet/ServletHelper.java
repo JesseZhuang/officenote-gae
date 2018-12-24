@@ -80,10 +80,11 @@ public class ServletHelper {
             return false;
         }
         List<Date> skips = dao.getSkipDates();
+        LocalDate comingMonday = TimeUtils.getComingMonday(today);
         for (Date date : skips) {
             LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
-            int diff = today.compareTo(skip);
+            int diff = comingMonday.compareTo(skip);
             if (diff >= 0 && diff < 7) {
                 LOGGER.info("Skipping ...");
                 return false;
