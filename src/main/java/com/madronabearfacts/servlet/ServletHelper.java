@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -84,9 +85,9 @@ public class ServletHelper {
         for (Date date : skips) {
             LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
-            int diff = comingMonday.compareTo(skip);
+            long diff = ChronoUnit.DAYS.between(skip, comingMonday);
             if (diff >= 0 && diff < 7) {
-                LOGGER.info("Skipping ...");
+                LOGGER.log(Level.INFO, "Skipping ... diff:{0}", diff);
                 return false;
             }
         }
@@ -274,6 +275,10 @@ public class ServletHelper {
         LocalDate yesterday = today.minusDays(1);
         System.out.println(ChronoUnit.DAYS.between(today, yesterday));
         System.out.println(today.compareTo(yesterday));
+        LocalDate skipExample = LocalDate.of(2018, 12, 24);
+        // returning 1 for 2019-01-08.compareTo(2018-12-24)
+        System.out.println("=== test skip " + today.compareTo(skipExample));
+        System.out.println("=== test skip " + ChronoUnit.DAYS.between(skipExample, today));
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         LocalDate todayNight = TimeUtils.convertDateToLocalDate(calendar.getTime());
