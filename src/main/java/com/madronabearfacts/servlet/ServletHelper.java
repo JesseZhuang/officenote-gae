@@ -63,7 +63,7 @@ public class ServletHelper {
         Date lastUpdatedDate = csst.getUpdateBlurbTime();
         LocalDate d = TimeUtils.convertDateToLocalDate(lastUpdatedDate);
         LOGGER.info("Last week blurbs were updated on " + d.toString() + " " + lastUpdatedDate);
-        if (ChronoUnit.DAYS.between(d, today) < 7) {
+        if (ChronoUnit.DAYS.between(d, today) < 5) {
             String msg = "Already updated blurbs this week ...";
             LOGGER.severe(msg);
             throw new RuntimeException(msg);
@@ -271,7 +271,7 @@ public class ServletHelper {
         System.out.println(b);
         System.out.println(b.getFlierLinks() == null);
         LocalDate today = LocalDate.now();
-        System.out.println(today);
+        System.out.println("today " + today);
         LocalDate yesterday = today.minusDays(1);
         System.out.println(ChronoUnit.DAYS.between(today, yesterday));
         System.out.println(today.compareTo(yesterday));
