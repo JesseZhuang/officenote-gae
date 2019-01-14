@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -37,6 +38,7 @@ import java.util.logging.Logger;
  * "target/officenotes-1.0-SNAPSHOT" folder and it will be included into the war file.
  */
 public class GmailHelper {
+    private final static Logger logger = Logger.getLogger(GmailHelper.class.getName());
 
     private final static Logger LOGGER = Logger.getLogger(GmailHelper.class.getName());
     private final static String CONTENT_PREFIX = "<font style=\"font-family: sans-serif; font-size:12px;\">";
@@ -221,7 +223,7 @@ public class GmailHelper {
         try {
             return getBlurbs(getMessages(GmailSingleton.getInstance()));
         } catch (ParseException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException("Exception when fetch blurbs.");
         }
     }

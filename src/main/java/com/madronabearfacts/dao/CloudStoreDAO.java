@@ -11,6 +11,8 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Generic google cloud data store DAO. For delete API, keys are required so
@@ -18,6 +20,7 @@ import java.util.Map;
 public interface CloudStoreDAO {
     DatastoreService datastoreService = DatastoreSingleton.getInstance();
     String rootKeyName = "parent";
+    Logger logger = Logger.getLogger(CloudStoreDAO.class.getName());
 
     default void deleteEntities(List<Key> keys) {
         TransactionOptions options = TransactionOptions.Builder.withXG(true);
@@ -35,7 +38,7 @@ public interface CloudStoreDAO {
             Entity entity = datastoreService.get(KeyFactory.createKey(kind, id));
             return (Date) entity.getProperty(propertyName);
         } catch (EntityNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException(String.format("Cannot find %s in cloud datastore for kind : %s.",
                     propertyName, kind));
         }
@@ -46,7 +49,7 @@ public interface CloudStoreDAO {
             Entity entity = datastoreService.get(key);
             return (Date) entity.getProperty(propertyName);
         } catch (EntityNotFoundException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException(String.format("Cannot find %s in cloud datastore for kind : %s.",
                     propertyName, kind));
         }

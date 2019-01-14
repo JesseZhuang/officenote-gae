@@ -24,8 +24,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GoogleAuthHelper {
+    private static final Logger logger = Logger.getLogger(GoogleAuthHelper.class.getName());
     /**
      * Application name.
      */
@@ -56,7 +59,7 @@ public class GoogleAuthHelper {
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
         }
     }
 

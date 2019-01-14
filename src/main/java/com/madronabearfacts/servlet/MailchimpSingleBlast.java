@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,8 +26,7 @@ public class MailchimpSingleBlast extends HttpServlet {
         try {
             campaignUrl = ServletHelper.singleBlast();
         } catch (MessagingException e) {
-            logger.severe("Sending email confirmation for single blast failed.");
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Sending email confirmation for single blast failed with exception ", e);
         }
         response.getWriter().println(String.format("Created single blast campaign at %s.", campaignUrl));
     }

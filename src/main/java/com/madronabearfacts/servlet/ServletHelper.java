@@ -122,7 +122,7 @@ public class ServletHelper {
         try {
             dao1.updateFetchBlurbTime(new Date());
         } catch (EntityNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "exception ", e);
         }
         return result;
     }
@@ -157,7 +157,7 @@ public class ServletHelper {
         try {
             csst.updateUpdateBlurbTime(new Date());
         } catch (EntityNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "exception ", e);
         }
         List<Blurb> blurbs = getActiveBlurbs();
         List<Blurb> toBeArchivedBlurbs = new ArrayList<>();

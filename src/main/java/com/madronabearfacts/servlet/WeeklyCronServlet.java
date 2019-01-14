@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>First check for holidays, last update blurbs time. Weekly cron job: put together the weekly office note,
@@ -15,6 +17,9 @@ import java.io.IOException;
  */
 @WebServlet(name = "WeeklyCronServlet", value = "/admin/cron/weekly")
 public class WeeklyCronServlet extends HttpServlet {
+
+    private final Logger logger = Logger.getLogger(WeeklyCronServlet.class.getName());
+
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -29,6 +34,7 @@ public class WeeklyCronServlet extends HttpServlet {
         response.getWriter().println(String.format("Created weeklyOfficeNote campaign at %s.", campaignUrl));
     }
 
+    @Deprecated
     private void sleepForLocal() {
         if (Constants.isLocalDev) {
             //issue for local development, chrome(canary)'s fault, multiple requests
@@ -50,7 +56,7 @@ public class WeeklyCronServlet extends HttpServlet {
                 ServletHelper.sendConfirmationLocal(campaignUrl);
             else ServletHelper.sendMITChairConfirmation(campaignUrl);
         } catch (MessagingException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
         }
     }
 }

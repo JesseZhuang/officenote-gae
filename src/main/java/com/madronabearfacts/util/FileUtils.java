@@ -10,8 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileUtils {
+    private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
 
     private static final String CLASS_PATH_ERROR_MESSAGE = "Failed reading class path file %s.";
     private static final String FILE_PATH_ERROR_MESSAGE = "Failed reading file %s.";
@@ -21,7 +24,7 @@ public class FileUtils {
             InputStream in = FileUtils.class.getResourceAsStream(resourcePath);
             return CharStreams.toString(new InputStreamReader(in, StandardCharsets.UTF_8));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException(String.format(CLASS_PATH_ERROR_MESSAGE, resourcePath));
         }
     }
@@ -33,7 +36,7 @@ public class FileUtils {
             properties.load(in);
             return properties;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException(String.format(CLASS_PATH_ERROR_MESSAGE, resourcePath));
         }
     }
@@ -46,7 +49,7 @@ public class FileUtils {
             properties.load(in);
             return properties;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException(String.format(FILE_PATH_ERROR_MESSAGE, resourcePath));
         }
     }

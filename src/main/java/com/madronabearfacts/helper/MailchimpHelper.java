@@ -66,7 +66,7 @@ public class MailchimpHelper {
         try {
             campaignInfo = CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception creating campaign: ", e);
             throw new RuntimeException("Failed to create campaign.");
         }
         logger.info("Created campaign with id " + campaignInfo.id);
@@ -79,7 +79,7 @@ public class MailchimpHelper {
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException("Set campaign content failed for " + campaignId);
         }
     }
@@ -91,7 +91,7 @@ public class MailchimpHelper {
         try {
             CLIENT.execute(job);
         } catch (IOException | MailchimpException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
             throw new RuntimeException("Schedule campaign failed for " + campaignId);
         }
 

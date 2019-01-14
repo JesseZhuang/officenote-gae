@@ -16,6 +16,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -88,8 +89,7 @@ public class TimeUtils {
         try {
             result = LocalDate.parse(date, formatter);
         } catch (DateTimeParseException e) {
-            LOGGER.severe(e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "exception ", e);
         }
         return result;
     }

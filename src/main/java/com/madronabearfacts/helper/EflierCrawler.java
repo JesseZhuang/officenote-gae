@@ -14,10 +14,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EflierCrawler {
+    private final Logger logger = Logger.getLogger(EflierCrawler.class.getName());
 
     private static final String START_IDENTIFIER = "<li";
     private static final String END_IDENTIFIER = "</li>";
@@ -135,13 +138,13 @@ public class EflierCrawler {
         try {
             urlObject = new URL(urlAddress);
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
         }
         URLConnection urlConnection = null;
         try {
             urlConnection = urlObject.openConnection();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
         }
         urlConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 " +
                 "(KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
@@ -155,10 +158,8 @@ public class EflierCrawler {
             }
 
             return stringBuilder.toString();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "exception ", e);
         }
 
         throw new RuntimeException("crawl html failed");
