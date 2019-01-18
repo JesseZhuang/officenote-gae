@@ -15,6 +15,8 @@
     <h1>Hello App Engine -- Java 8!</h1>
 
   <p>This is <%= HelloAppEngine.getInfo() %>.</p>
+  <p style="font-weight:bold;">Privacy Policy</p>
+  <p>This privacy notice discloses the privacy practices for Madrona K-8 school office notes application. This application does not deal with any user and does not collect any personal information. The application needs some Gmail scopes only to access the email where office note news blurb submission are sent.</p>
   <table>
     <tr>
       <td colspan="2" style="font-weight:bold;">Available Servlets:</td>
