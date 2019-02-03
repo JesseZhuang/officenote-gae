@@ -37,7 +37,13 @@ public class EflierCrawler {
 
     private List<Eflier> crawlEflierOnPage(String pageUrl) {
         List<Eflier> efilers = new ArrayList<>();
-        String eflierSection = getEflierSection(pageUrl);
+        String eflierSection;
+        try {
+            eflierSection = getEflierSection(pageUrl);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "no eflier section on page " + pageUrl, e);
+            return efilers;
+        }
         int startIndex = 0, endIndex;
         LocalDate lastMonday = TimeUtils.getLastMonday();
         while (startIndex >= 0) {
@@ -79,21 +85,31 @@ public class EflierCrawler {
     }
 
     private String getEflierTitle(String eflierLine) {
-        final String plainText = eflierLine.substring(0, findIndexOrThrowException(eflierLine, URL_IDENTIFIER));
-        String downloadUrlText;
-        final String urlTitleIdentifier = "title=\"";
-        int startIndex = findIndexOrThrowException(eflierLine, urlTitleIdentifier) + urlTitleIdentifier.length();
-        int endIndex = findIndexOrThrowException(eflierLine, "\"", startIndex);
-        downloadUrlText = eflierLine.substring(startIndex, endIndex);
-        return plainText + downloadUrlText;
+        try {
+            final String plainText = eflierLine.substring(0, findIndexOrThrowException(eflierLine, URL_IDENTIFIER));
+            String downloadUrlText;
+            final String urlTitleIdentifier = "title=\"";
+            int startIndex = findIndexOrThrowException(eflierLine, urlTitleIdentifier) + urlTitleIdentifier.length();
+            int endIndex = findIndexOrThrowException(eflierLine, "\"", startIndex);
+            downloadUrlText = eflierLine.substring(startIndex, endIndex);
+            return plainText + downloadUrlText;
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "cannot find url in eflier line: ", e);
+            return eflierLine;
+        }
     }
 
-    private String getEflierDownloadUrl(String eflierLine) {
-        int startIndex = findIndexOrThrowException(eflierLine, URL_IDENTIFIER) + URL_IDENTIFIER.length();
-        int endIndex = findIndexOrThrowException(eflierLine, "\"", startIndex);
-        String downloadUrl = eflierLine.substring(startIndex, endIndex).replace(" ", "%20");
-        if (downloadUrl.startsWith("http")) return downloadUrl;
-        return Constants.ESD_DOMAIN + downloadUrl;
+    private Optional<String> getEflierDownloadUrl(String eflierLine) {
+        try {
+            int startIndex = findIndexOrThrowException(eflierLine, URL_IDENTIFIER) + URL_IDENTIFIER.length();
+            int endIndex = findIndexOrThrowException(eflierLine, "\"", startIndex);
+            String downloadUrl = eflierLine.substring(startIndex, endIndex).replace(" ", "%20");
+            if (downloadUrl.startsWith("http")) return Optional.of(downloadUrl);
+            return Optional.of(Constants.ESD_DOMAIN + downloadUrl);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "cannot find url in eflier: ", e);
+            return Optional.empty();
+        }
     }
 
     private String getPostedDate(String eflierLine) {
