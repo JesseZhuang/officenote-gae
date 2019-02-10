@@ -1,14 +1,21 @@
 # https://cloud.google.com/appengine/docs/standard/java/config/cronref-yaml#custom
+# `gcloud app deploy cron.yaml`
 cron:
 - description: "weekly whole job: weeklyOfficeNote, update/archive/delete, email confirmation"
   url: /admin/cron/weekly
-  schedule: every saturday 17:10
+  schedule: every saturday 21:03
   timezone: America/Los_Angeles
 - description: "daily job: fetching blurbs, crawl eflier if it is Saturday"
   url: /admin/fetch
   schedule: every day 17:03
   timezone: America/Los_Angeles
+  retry_parameters:
+      min_backoff_seconds: 120
+      job_retry_limit: 3
 - description: "daily job: scanning for single blast, mailchimp, email confirmation"
   url: /admin/MailchimpSingleBlast
   schedule: every monday,tuesday,wednesday,thursday 17:05
   timezone: America/Los_Angeles
+  retry_parameters:
+      min_backoff_seconds: 120
+      job_retry_limit: 3
