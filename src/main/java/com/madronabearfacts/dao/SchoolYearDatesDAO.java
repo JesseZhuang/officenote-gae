@@ -20,6 +20,9 @@ public class SchoolYearDatesDAO implements CloudStoreDAO {
     public SchoolYearDatesDAO() {
     }
 
+    /**
+     * Used for local development to prepare local datastore.
+     */
     public void writeDates() {
         LocalDate today = LocalDate.now();
         Date start = TimeUtils.convertLocalDateToDate(today.minusDays(1));

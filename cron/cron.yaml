@@ -14,7 +14,7 @@ cron:
       job_retry_limit: 3
 - description: "daily job: scanning for single blast, mailchimp, email confirmation"
   url: /admin/MailchimpSingleBlast
-  schedule: every monday,tuesday,wednesday,thursday 17:05
+  schedule: every monday,tuesday,wednesday,thursday 17:20
   timezone: America/Los_Angeles
   retry_parameters:
       min_backoff_seconds: 120

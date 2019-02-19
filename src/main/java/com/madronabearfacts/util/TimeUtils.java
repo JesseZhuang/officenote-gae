@@ -142,5 +142,6 @@ public class TimeUtils {
         System.out.println(ZoneId.getAvailableZoneIds());
         System.out.println(getPacificLocalDate());
         System.out.println(getUtcLocalDate());
+        System.out.println(getNextBusinessDay6am(LocalDate.now()));
     }
 }
