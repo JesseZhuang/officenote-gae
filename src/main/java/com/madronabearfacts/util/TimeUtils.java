@@ -127,7 +127,7 @@ public class TimeUtils {
 
         System.out.println(LocalDate.of(2003, 5, 23).isAfter(LocalDate.of(2003, 5, 22)));
 
-        System.out.println(getLastMonday());
+        System.out.println("last monday: " + getLastMonday());
         System.out.println("year " + getLastMonday().getYear());
 
         System.out.println(parseDate("12/20/2017"));

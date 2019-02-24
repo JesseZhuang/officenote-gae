@@ -24,7 +24,8 @@ public class EflierCrawler {
 
     private static final String START_IDENTIFIER = "<li";
     private static final String END_IDENTIFIER = "</li>";
-    private static final String URL_IDENTIFIER = "<a href=\"";
+    private static final String A_TAG_IDENTIFIER = "<a";
+    private static final String URL_IDENTIFIER = "href=\"";
 
     public List<Eflier> crawlAllEfliers() {
         List<Eflier> efilers = new ArrayList<>();
@@ -86,7 +87,7 @@ public class EflierCrawler {
 
     private String getEflierTitle(String eflierLine) {
         try {
-            final String plainText = eflierLine.substring(0, findIndexOrThrowException(eflierLine, URL_IDENTIFIER));
+            final String plainText = eflierLine.substring(0, findIndexOrThrowException(eflierLine, A_TAG_IDENTIFIER));
             String downloadUrlText;
             final String urlTitleIdentifier = "title=\"";
             int startIndex = findIndexOrThrowException(eflierLine, urlTitleIdentifier) + urlTitleIdentifier.length();
@@ -184,8 +185,7 @@ public class EflierCrawler {
     public static void main(String[] args) {
         EflierCrawler crawler = new EflierCrawler();
         for (String pageUrl : Constants.EFLIER_URLS) {
-//            System.out.println("[debug]: for pageUrl "+ pageUrl);
-//
+            System.out.println("[debug]: for pageUrl "+ pageUrl);
             System.out.println(crawler.getEflierSection(pageUrl));
             System.out.println("----------");
             for (Eflier flier : crawler.crawlEflierOnPage(pageUrl)) System.out.println(flier);

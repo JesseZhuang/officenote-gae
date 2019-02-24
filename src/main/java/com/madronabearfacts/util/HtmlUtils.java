@@ -25,8 +25,8 @@ package com.madronabearfacts.util;
 public class HtmlUtils {
     // *: 0 or more; ?: 0 or 1; + 1 or more; re{n}: exactly n repeats of re
     // [] matches any single character in brackets
-    public static final String URL_PATTERN = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@"
-            + "#/%?=~_|!:,'.;]+[-a-zA-Z0-9+&@%#/=~_|]+";
+    public static final String URL_PATTERN = "\\b(https?|ftp|file)://[-a-zA-Z0-9+()&@#/%?=~_|!:,'.;]+" +
+            "[-a-zA-Z0-9+&@%#/=~_|]+";
     /*
      * "(http://|https://|HTTP://|HTTPS://)+" +
      * "(www.)?([a-zA-Z0-9-_]+)[.]([a-zA-Z0-9]+[.])*([a-zA-Z0-9]+)" +
