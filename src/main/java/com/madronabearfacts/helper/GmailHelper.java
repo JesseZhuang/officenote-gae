@@ -3,15 +3,12 @@ package com.madronabearfacts.helper;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Label;
-import com.google.api.services.gmail.model.ListLabelsResponse;
-import com.google.api.services.gmail.model.ListMessagesResponse;
-import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.ModifyMessageRequest;
+import com.google.api.services.gmail.model.*;
 import com.google.common.collect.ImmutableList;
 import com.madronabearfacts.entity.Blurb;
 import com.madronabearfacts.entity.SingleBlast;
 import com.madronabearfacts.util.StringIndexUtils;
+import com.madronabearfacts.util.TimeUtils;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -21,11 +18,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -151,14 +145,24 @@ public class GmailHelper {
 
         for (String message : htmlMessages) {
             String title = findInfo(message, titleKey, CONTENT_SUFFIX);
-            int numWeeks = Integer.parseInt(findInfo(message, numWeeksKey, " Week"));
+            int numWeeks = 1;
+            try {
+                numWeeks = Integer.parseInt(findInfo(message, numWeeksKey, " Week"));
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "exception:{0}", e);
+            }
             String content = findInfo(message, contentKey, CONTENT_SUFFIX);
             // remove line returns, extra <br>s, extra white spaces. • word bullet sign
             content = content.replace("\r\n", "")
                     .replaceAll("((<br />)\\s*){2,}", "<br />")
                     .replaceAll("\\s{2,}", " ").replace("·", "•");
             SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy");
-            Date startDate = format.parse(findInfo(message, startDateKey, CONTENT_SUFFIX));
+            Date startDate = TimeUtils.getPacificTodayDate();
+            try {
+                startDate = format.parse(findInfo(message, startDateKey, CONTENT_SUFFIX));
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "exception:{0}", e);
+            }
             String submitterEmail = findInfo(message, submitterEmailKey, "'>", "</a>");
             SingleBlast singleBlast = message.contains(singleBlastKey) ? SingleBlast.BLAST : SingleBlast.NOT_A_BLAST;
 
@@ -188,10 +192,10 @@ public class GmailHelper {
     }
 
     private static String findInfo(String message, String toFind, String prefix, String suffix) {
-        int startInd = message.indexOf(toFind);
+        int startInd = StringIndexUtils.findIndexOrThrowException(message, toFind);
         startInd = StringIndexUtils.findIndexOrThrowException(message, prefix, startInd)
                 + prefix.length();
-        return message.substring(startInd, message.indexOf(suffix, startInd));
+        return message.substring(startInd, StringIndexUtils.findIndexOrThrowException(message, suffix, startInd));
     }
 
     private static String cutLongFileName(String flierLinks) {

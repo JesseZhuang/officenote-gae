@@ -102,6 +102,10 @@ public class TimeUtils {
         return LocalDate.now(ZoneId.of("America/Los_Angeles"));
     }
 
+    public static Date getPacificTodayDate(){
+        return convertLocalDateToDate(getPacificLocalDate());
+    }
+
     public static LocalDate getUtcLocalDate() {
         return LocalDate.now(ZoneId.of("UTC"));
     }
