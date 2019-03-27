@@ -57,7 +57,7 @@ public class ServletHelper {
 
 
     public static boolean shouldExecuteCronWeekly() {
-        if (!shouldFetchBlurbs()) return false;
+        if (!shouldFetchBlurbs() || isSpringWinterBreak()) return false;
         LocalDate today = TimeUtils.getPacificLocalDate();
         CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
         Date lastUpdatedDate = csst.getUpdateBlurbTime();
@@ -80,6 +80,15 @@ public class ServletHelper {
             LOGGER.info("Summer time ...");
             return false;
         }
+        return true;
+    }
+
+    /**
+     * @return whether the coming Monday is in spring or winter break.
+     */
+    public static boolean isSpringWinterBreak() {
+        SchoolYearDatesDAO dao = new SchoolYearDatesDAO();
+        LocalDate today = TimeUtils.getPacificLocalDate();
         List<Date> skips = dao.getSkipDates();
         LocalDate comingMonday = TimeUtils.getComingMonday(today);
         for (Date date : skips) {
@@ -87,7 +96,7 @@ public class ServletHelper {
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
             long diff = ChronoUnit.DAYS.between(skip, comingMonday);
             if (diff >= 0 && diff < 7) {
-                LOGGER.log(Level.INFO, "Skipping ... diff:{0}", diff);
+                LOGGER.log(Level.INFO, "Skipping ... diff: {0}", diff);
                 return false;
             }
         }
