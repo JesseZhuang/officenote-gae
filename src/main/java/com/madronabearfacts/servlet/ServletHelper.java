@@ -92,15 +92,15 @@ public class ServletHelper {
         List<Date> skips = dao.getSkipDates();
         LocalDate comingMonday = TimeUtils.getComingMonday(today);
         for (Date date : skips) {
-            LOGGER.info(String.format("Date to skip: %s, today: %s.", date, today));
+            LOGGER.info(String.format("Date to skip: %s, today: %s, coming monday: %s.", date, today, comingMonday));
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
             long diff = ChronoUnit.DAYS.between(skip, comingMonday);
-            if (diff >= 0 && diff < 7) {
+            if (0 == diff) {
                 LOGGER.log(Level.INFO, "Skipping ... diff: {0}", diff);
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public static List<Key> fetchBlurbs() {
@@ -284,10 +284,13 @@ public class ServletHelper {
         LocalDate yesterday = today.minusDays(1);
         System.out.println(ChronoUnit.DAYS.between(today, yesterday));
         System.out.println(today.compareTo(yesterday));
-        LocalDate skipExample = LocalDate.of(2018, 12, 24);
+        LocalDate skipExample = LocalDate.of(2019, 04, 01);
         // returning 1 for 2019-01-08.compareTo(2018-12-24)
         System.out.println("=== test skip " + today.compareTo(skipExample));
         System.out.println("=== test skip " + ChronoUnit.DAYS.between(skipExample, today));
+        System.out.println("=== test skip " + ChronoUnit.DAYS.between(today, skipExample));
+        System.out.println("=== test skip " + ChronoUnit.DAYS.between(skipExample,
+                TimeUtils.getComingMonday(today)));
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         LocalDate todayNight = TimeUtils.convertDateToLocalDate(calendar.getTime());
