@@ -73,7 +73,7 @@ public class MailchimpHelper {
         return campaignInfo;
     }
 
-    private void setCampaignCotent(String campaignId, String html) {
+    private void setCampaignContent(String campaignId, String html) {
         SetCampaignContentMethod job = new SetCampaignContentMethod(campaignId);
         job.html = html;
         try {
@@ -281,7 +281,7 @@ public class MailchimpHelper {
 
         CampaignInfo campaignInfo = createCampaign("Office Notes "
                 + TimeUtils.getComingMonday(LocalDate.now()).format(TimeUtils.CAMPAIGN_TITLE));
-        setCampaignCotent(campaignInfo.id, PART1 + generateRightColumn(blurbs) + PART2
+        setCampaignContent(campaignInfo.id, PART1 + generateRightColumn(blurbs) + PART2
                 + generateLeftColumn(calendar) + PART3);
         scheduleCampaign(campaignInfo.id, TimeUtils.getComingMonday6am(LocalDate.now()));
         logger.info("Finished creating weeklyOfficeNote campaign.");
@@ -293,7 +293,7 @@ public class MailchimpHelper {
         String html = buildSingleBlast(blurbs);
 
         CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
-        setCampaignCotent(campaignInfo.id, String.format(SINGLE_BLAST, html));
+        setCampaignContent(campaignInfo.id, String.format(SINGLE_BLAST, html));
         scheduleCampaign(campaignInfo.id, TimeUtils.getNextBusinessDay6am(TimeUtils.getPacificLocalDate()));
         logger.info("Finished creating singleBlast campaign.");
         return campaignInfo.archive_url;
