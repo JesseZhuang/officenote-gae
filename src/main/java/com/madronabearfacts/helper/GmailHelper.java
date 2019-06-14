@@ -57,7 +57,7 @@ public class GmailHelper {
             LOGGER.info("Messages count: " + messages.size());
             //id:Label_5 -> name:past office notes; id:INBOX -> name:INBOX
             ModifyMessageRequest mod = new ModifyMessageRequest().setAddLabelIds(ImmutableList.of("Label_5", "STARRED"))
-                    .setRemoveLabelIds(Collections.singletonList("INBOX"));
+                    .setRemoveLabelIds(ImmutableList.of("INBOX", "UNREAD"));
             for (Message message : messages) {
                 Message m = service.users().messages().get(user, message.getId()).execute();
                 htmlMessages.add(StringUtils.newStringUtf8(
