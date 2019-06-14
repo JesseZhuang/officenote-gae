@@ -1,6 +1,5 @@
 package com.madronabearfacts.servlet;
 
-import com.google.api.services.calendar.CalendarScopes;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -16,7 +15,6 @@ import com.madronabearfacts.helper.EflierCrawler;
 import com.madronabearfacts.helper.GCalHelper;
 import com.madronabearfacts.helper.GmailHelper;
 import com.madronabearfacts.helper.GmailSingleton;
-import com.madronabearfacts.helper.GoogleAuthHelper;
 import com.madronabearfacts.helper.MailchimpHelper;
 import com.madronabearfacts.util.TimeUtils;
 
@@ -122,7 +120,7 @@ public class ServletHelper {
         LOGGER.info(String.format("Fetched %s blurbs submitted via email.", blurbs.size()));
         if (TimeUtils.getPacificLocalDate().getDayOfWeek() == DayOfWeek.SATURDAY) {
             LOGGER.info("Start crawling e-fliers since it is Saturday ...");
-            blurbs.addAll(buildEflierBourbWithCrawler());
+            blurbs.addAll(buildEflierBlurbWithCrawler());
         }
         LOGGER.info(String.format("Finished fetching, total blurbs count is %s.", blurbs.size()));
         blurbs.forEach(b -> LOGGER.info(b.toString()));
@@ -137,7 +135,7 @@ public class ServletHelper {
     }
 
 
-    private static List<Blurb> buildEflierBourbWithCrawler() {
+    private static List<Blurb> buildEflierBlurbWithCrawler() {
         List<Blurb> eflierBlurb = new ArrayList<>();
         final String title = "Latest Community-eFliers";
         EflierCrawler crawler = new EflierCrawler();
@@ -152,7 +150,7 @@ public class ServletHelper {
             eflierBlurb.add(Blurb.builder().content(content).title(title).curWeek(1).numWeeks(1)
                     .fetchDate(TimeUtils.convertLocalDateToDate(LocalDate.now()))
                     .startDate(TimeUtils.convertLocalDateToDate(TimeUtils.getComingMonday(LocalDate.now())))
-                    .submitterEmail(Constants.GOOGLE.getProperty("jesse.email"))
+                    .submitterEmail(Constants.GOOGLE.getProperty("officenotes.admin.email"))
                     .singleBlast(SingleBlast.NOT_A_BLAST)
                     .build());
         }
@@ -201,9 +199,7 @@ public class ServletHelper {
     public static String weeklyOfficeNote() throws IOException {
         List<Blurb> blurbs = getActiveBlurbs();
         String campaignUrl = new MailchimpHelper().doAllCampaignJobs(
-                GCalHelper.getCalendarService(GoogleAuthHelper.getCredServiceAccountFromClassPath(
-                        CalendarScopes.CALENDAR_READONLY)),
-                blurbs);
+                GCalHelper.getInstance(), blurbs);
         return campaignUrl;
     }
 
@@ -249,7 +245,7 @@ public class ServletHelper {
         dao.updateBlurbs(singleBlast);
         if (Constants.isLocalDev) submitterEmails.clear();
         GmailHelper.sendEmail(GmailSingleton.getInstance(), submitterEmails,
-                Constants.GOOGLE.getProperty("jesse.email"), "Office Notes special edition created",
+                Constants.GOOGLE.getProperty("officenotes.admin.email"), "Office Notes special edition created",
                 String.format(SINGLE_BLAST_BODY, campaignUrl, campaignUrl));
         return campaignUrl;
     }

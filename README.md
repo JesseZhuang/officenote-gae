@@ -1,5 +1,12 @@
-appengine-standard-archetype
-============================
+## Office Note
+
+### maintenance
+
+Every year before school starts, update the five dates in gcloud datastore "SchoolYearDates" kind accordingly.
+
+After a few years, the out dated archived blurbs can be deleted. For example, in 2025, we can delete all blurbs in Blurb2018.
+
+## appengine-standard-archetype
 
 This is a generated App Engine Standard Java application from the appengine-standard-archetype archetype.
 
@@ -13,21 +20,31 @@ detailed instructions.
 * [Maven](https://maven.apache.org/download.cgi) (at least 3.5)
 * [Google Cloud SDK](https://cloud.google.com/sdk/) (aka gcloud)
 
-## Setup
+### Setup
 
     gcloud init
     gcloud auth application-default login
 
-## Maven
-### Running locally
+Actually
+
+    gcloud auth login
+    gcloud config set project ${PROJECT_ID}
+    # when switching gcloud account
+    rm ~/.appcfg_oauth2_tokens_java
+
+https://cloud.google.com/code/docs/intellij/migrate
+
+### Maven
+#### Running locally
 
     mvn appengine:devserver
 
-### Deploying
+#### Deploying
 
     mvn appengine:update
+    mvn appengine:deploy
 
-## Testing
+#### Testing
 
     mvn verify
 
@@ -39,7 +56,11 @@ to (`src/main/test/...`).  The following resources are quite useful:
 * [Mockito](http://mockito.org/)
 * [Truth](http://google.github.io/truth/)
 
-## Updating to latest Artifacts
+## Data Export and Import
+
+https://cloud.google.com/datastore/docs/export-import-entities
+
+### Updating to latest Artifacts
 
 An easy way to keep your projects up to date is to use the maven [Versions plugin][versions-plugin].
 

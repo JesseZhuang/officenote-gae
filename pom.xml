@@ -67,6 +67,7 @@
       <artifactId>google-api-services-drive</artifactId>
       <version>v3-rev81-1.22.0</version>
     </dependency>
+    <!-- google calendar api -->
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-calendar</artifactId>
@@ -143,7 +144,7 @@
         <version>1.9.67</version>
         <configuration>
           <project>officenotes-gc</project>
-          <appId>officenotes-020716</appId> <!-- Override appengine-web.xml <project> -->
+          <appId>officenote-jz-2019</appId> <!-- Override appengine-web.xml <project> -->
           <version>1</version>
           <fullScanSeconds>1</fullScanSeconds>
           <retainUploadDir>true</retainUploadDir>

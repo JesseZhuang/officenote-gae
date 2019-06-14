@@ -181,8 +181,10 @@ public class MailchimpHelper {
     }
 
     private String generateLeftColumn(Calendar calendar) throws IOException {
+        logger.info("Starting generating calendar left column.");
         DateTime now = new DateTime(System.currentTimeMillis());
         DateTime twoMonthsFromNow = new DateTime(TimeUtils.getTwoMonthsFromNow(LocalDate.now()));
+        logger.info("Calling gcal......");
         Events events = calendar.events().list(Constants.GOOGLE.getProperty("bearfacts.gmail"))
                 .setTimeMax(twoMonthsFromNow).setTimeMin(now).setOrderBy("startTime")
                 .setSingleEvents(true).execute();

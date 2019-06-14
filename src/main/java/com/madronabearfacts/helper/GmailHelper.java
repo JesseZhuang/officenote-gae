@@ -18,7 +18,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,7 +76,7 @@ public class GmailHelper {
 
     public static boolean sendMessageLocal(Gmail service, String subject, String bodyHtml)
             throws MessagingException, IOException {
-        return sendMessageToOne(service, Constants.GOOGLE.getProperty("jesse.email"), subject, bodyHtml);
+        return sendMessageToOne(service, Constants.GOOGLE.getProperty("officenotes.admin.email"), subject, bodyHtml);
     }
 
     private static boolean sendMessageToOne(Gmail service, String to, String subject, String bodyHtml)
@@ -85,7 +84,7 @@ public class GmailHelper {
         Message message = createMessageWithEmail(
                 createEmail(Constants.GOOGLE.getProperty("officenotes.gmail"),
                         Collections.singletonList(to),
-                        Constants.GOOGLE.getProperty("jesse.email"),
+                        Constants.GOOGLE.getProperty("officenotes.admin.email"),
                         subject, bodyHtml
                 ));
 

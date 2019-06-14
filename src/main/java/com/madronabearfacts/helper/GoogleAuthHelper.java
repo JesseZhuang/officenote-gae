@@ -114,11 +114,15 @@ public class GoogleAuthHelper {
     }
 
     /**
+     * @deprecated no longer works in app engine, run from local file with service account still works. weird.
+     * error code is 404, domain : global. Maybe related to GSuite whitelisting.
+     *
      * Get credential with json key generated from the service account.
      * Scope example: gmail, google calendar, and google drive.
      *
      * @return GoogleCredential for a scope.
      */
+    @Deprecated
     public static GoogleCredential getCredServiceAccountFromClassPath(String scope) throws IOException {
         return GoogleCredential
                 .fromStream(GoogleAuthHelper.class.getResourceAsStream("/officenote-gae-madrona.json"))
