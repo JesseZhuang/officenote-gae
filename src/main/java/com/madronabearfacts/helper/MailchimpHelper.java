@@ -281,7 +281,7 @@ public class MailchimpHelper {
         logger.info("Start creating weeklyOfficeNote campaign ...");
         if (blurbs.size() == 0) return "No blurbs this week.";
 
-        CampaignInfo campaignInfo = createCampaign("Office Notes "
+        CampaignInfo campaignInfo = createCampaign("Bear Essentials "
                 + TimeUtils.getComingMonday(LocalDate.now()).format(TimeUtils.CAMPAIGN_TITLE));
         setCampaignContent(campaignInfo.id, PART1 + generateRightColumn(blurbs) + PART2
                 + generateLeftColumn(calendar) + PART3);
@@ -294,7 +294,7 @@ public class MailchimpHelper {
         logger.info("Start creating singleBlast campaign ...");
         String html = buildSingleBlast(blurbs);
 
-        CampaignInfo campaignInfo = createCampaign("Office Notes Special Edition");
+        CampaignInfo campaignInfo = createCampaign("Bear Essentials Special Edition");
         setCampaignContent(campaignInfo.id, String.format(SINGLE_BLAST, html));
         scheduleCampaign(campaignInfo.id, TimeUtils.getNextBusinessDay6am(TimeUtils.getPacificLocalDate()));
         logger.info("Finished creating singleBlast campaign.");

@@ -40,11 +40,11 @@ public class GmailHelper {
     /**
      * Get inbox messages. Archive the messages if it is local development.
      *
-     * @param service
-     * @return
-     * @throws IOException
+     * @param service a Gmail Service instance.
+     * @return list of strings for each email message.
+     * @throws IOException when calling gmail fails.
      */
-    public static List<String> getMessages(Gmail service) throws IOException {
+    private static List<String> getMessages(Gmail service) throws IOException {
         // Print the labels in the user's account.
         String user = "me";
         ListMessagesResponse listResponse = service.users().messages().list(user)
@@ -148,7 +148,7 @@ public class GmailHelper {
             try {
                 numWeeks = Integer.parseInt(findInfo(message, numWeeksKey, " Week"));
             } catch (RuntimeException e) {
-                logger.log(Level.WARNING, "exception:{0}", e);
+                logger.log(Level.WARNING, "exception: ", e);
             }
             String content = findInfo(message, contentKey, CONTENT_SUFFIX);
             // remove line returns, extra <br>s, extra white spaces. • word bullet sign
@@ -160,7 +160,7 @@ public class GmailHelper {
             try {
                 startDate = format.parse(findInfo(message, startDateKey, CONTENT_SUFFIX));
             } catch (RuntimeException e) {
-                logger.log(Level.WARNING, "exception:{0}", e);
+                logger.log(Level.WARNING, "exception: ", e);
             }
             String submitterEmail = findInfo(message, submitterEmailKey, "'>", "</a>");
             SingleBlast singleBlast = message.contains(singleBlastKey) ? SingleBlast.BLAST : SingleBlast.NOT_A_BLAST;

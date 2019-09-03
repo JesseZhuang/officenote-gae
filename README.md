@@ -34,6 +34,16 @@ Actually
 
 https://cloud.google.com/code/docs/intellij/migrate
 
+Note Google Application Engine java does not seem to work well with jdk 12.
+
+```bash
+brew tap AdoptOpenJDK/openjdk
+brew cask install <version>
+brew cask uninstall <version>
+jenv enable-plugin maven
+mvn -version # check mvn using java runtime version
+```
+
 ### Maven
 #### Running locally
 

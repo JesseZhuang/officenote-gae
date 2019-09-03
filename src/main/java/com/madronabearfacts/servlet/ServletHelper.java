@@ -94,7 +94,7 @@ public class ServletHelper {
             LocalDate skip = TimeUtils.convertDateToLocalDate(date);
             long diff = ChronoUnit.DAYS.between(skip, comingMonday);
             if (0 == diff) {
-                LOGGER.log(Level.INFO, "Skipping ... diff: {0}", diff);
+                LOGGER.log(Level.INFO, "Skipping ... diff: ", diff);
                 return true;
             }
         }
@@ -125,9 +125,9 @@ public class ServletHelper {
         LOGGER.info(String.format("Finished fetching, total blurbs count is %s.", blurbs.size()));
         blurbs.forEach(b -> LOGGER.info(b.toString()));
         List<Key> result = dao.saveBlurbs(blurbs, ACTIVE_BLURB_KIND);
-        CronStepSuccessTimesDAO dao1 = new CronStepSuccessTimesDAO();
+        CronStepSuccessTimesDAO csst = new CronStepSuccessTimesDAO();
         try {
-            dao1.updateFetchBlurbTime(new Date());
+            csst.updateFetchBlurbTime(new Date());
         } catch (EntityNotFoundException e) {
             LOGGER.log(Level.SEVERE, "exception ", e);
         }
