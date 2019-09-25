@@ -6,3 +6,5 @@ google.properties
 gmail_stored_cred/
 local_db.bin
 datastore-indexes-auto.xml
+.DS_Store
+*.iml
