@@ -41,6 +41,8 @@ brew tap AdoptOpenJDK/openjdk
 brew cask install <version>
 brew cask uninstall <version>
 jenv enable-plugin maven
+jenv add <jdk_path>
+jenv global 1.8.0.202
 mvn -version # check mvn using java runtime version
 ```
 
